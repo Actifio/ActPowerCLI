@@ -47,13 +47,46 @@ function get-sargreport([string]$reportname)
                 }
             }
         $Url = "https://$vdpip/actifio/api/report/$reportname" + "?" + "$sargopts" + "sessionid=$sessionid"
-        $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-        $resp.result
-	} else 
+        Try
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+        }
+        Catch
+        {
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            $RestError | ConvertFrom-JSON
+            Return
+        }
+        else
+        {
+            $resp.result
+            Return
+        }
+    } 
+    else 
 	{
         $Url = "https://$vdpip/actifio/api/report/$reportname" + "?sessionid=$sessionid" 
-        $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-        $resp.result
+        Try
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+        }
+        Catch
+        {
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            $RestError | ConvertFrom-JSON
+            Return
+        }
+        else
+        {
+            $resp.result
+            Return
+        }
 	}
 }
 
@@ -84,28 +117,75 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 	# if no subcommand is provided, display the list of subcommands and exit
 	if ( $subcommand -eq "" )
 	{
+        Try
+        {
         $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$sessionid"
         $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-        $resp.result
-		return;
-	}
-
-	if ( $help )
+        }
+        Catch
+        {
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            $RestError | ConvertFrom-JSON
+            Return
+        }
+        else
+        {
+            $resp.result
+            Return
+        }
+    }
+    
+   if ( $help )
 	{
 		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
 		if ( $subcommand -ne "")
 		{
-			$Url = "https://$vdpip/actifio/api/info/help/$subcommand" + "?sessionid=$sessionid"
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            $resp.result | more
+            Try
+            {
+			    $Url = "https://$vdpip/actifio/api/info/help/$subcommand" + "?sessionid=$sessionid"
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+                Return
+            }
+            else
+            {
+                $resp.result | more
+                Return
+            }
 		} else 
 		{
-			$Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$sessionid"
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            $resp.result | more
-		}		
-		return;
+            Try
+            {
+			    $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$sessionid"
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+                Return
+            }
+            else
+            {
+                $resp.result | more
+                Return
+            }
+        }		
     } 
+  
     # we didn't get asked for help so lets grab the output
     # we start at apistart of 0.  For nearly all searches this will be fine
     $apistart = 0 
@@ -117,27 +197,87 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
             $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$sessionid" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" + "&apistart=$apistart" 
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            $output = $resp.result
+            Try
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+                Return
+            }
+            else
+            {
+                $output = $resp.result
+            }
         }
         elseif ($argument)
         {
             $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$sessionid" + "&argument=" + "$argument" + "&apistart=$apistart" 
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            $output = $resp.result
+            Try    
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+                Return
+            }
+            else
+            {
+                $output = $resp.result
+            }
         }
         elseif ($filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
             $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$sessionid" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" 
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            $output = $resp.result
+            Try    
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            }
+                Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+                Return
+            }
+            else
+            {
+                $output = $resp.result
+            }
         }
         else
         {
             $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$sessionid"  + "&apistart=$apistart" 
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url 
-            $output = $resp.result
+            Try    
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url 
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+                Return
+            }
+            else
+            {
+                $output = $resp.result
+            }
         }
         # count the results and add 4096 to apistart.  If we got less than 4096 we are done and can finish by settting done to 1
         $objcount = $output.count
@@ -151,6 +291,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         $apistart = $apistart + 4096
         }
     } while ($done -eq 0)
+
 }
 
 
@@ -161,33 +302,162 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
 	if ( $subcommand -eq "" )
 	{
         $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$sessionid"
-        $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-        $resp.result
+        Try
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+        }
+        Catch
+        {
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            $RestError | ConvertFrom-JSON
+        }
+        else
+        {
+            $resp.result 
+        }
 		return;
 	}
 
-	# Help will always be given at Hogwarts to those who ask for it. -Dumbledore
-	if ( $help )
+	if ($help) 
 	{
 		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
 		if ( $subcommand -ne "")
 		{
             $Url = "https://$vdpip/actifio/api/task/help/$subcommand" + "?&sessionid=$sessionid"
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            $resp.result | more
+            Try
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+            }
+            else
+            {
+                $resp.result | more
+            }
 		} else 
 		{
             $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$sessionid"
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            $resp.result | more
+            Try
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+            }
+            else
+            {
+                $resp.result | more
+            }
 		}
-
 		return;
-	} 
-
-    $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$sessionid"
-    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-    $resp.result
+    }
+    # if we got to here we are going to try a udstask command
+    if ($args) 
+    {
+        # we are going to send all the UDS command opts in REST format as udsopts
+        $udsopts = $null
+        $argprint = $args | Out-String
+        $parmcount = $argprint | measure-object -word
+        # if we got a single item this is the object.  Sometimes this works
+        if ( $parmcount.words -eq 1)
+        {
+            $udsopts = "&argument=" + $argprint
+            $udsopts
+            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$sessionid" + "$udsopts"
+            Try
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+            }
+            else
+            {
+                $resp.result
+            }
+        }
+        else
+        #  we got more than one word
+        # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  We dump blank lines
+        {
+            $dashsep = $argprint.Split("-") -notmatch '^\s*$'
+            foreach ($arg in $dashsep) 
+            {
+                # remove any whitespace at the end
+                $trimm = $arg.TrimEnd()
+                # is there on word here or two?  If one word we have a single word parameter
+                $parmcount = $trimm | measure-object -word
+                if ( $parmcount.words -eq 1)
+                {
+                    $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
+                }
+                else
+                {
+                    $firstword = $trimm.Split([Environment]::NewLine) | Select -First 1
+                    $secondword = $trimm.Split([Environment]::NewLine) | Select -last 1
+                    $udsopts =  $udsopts + "&" + "$firstword" + "=" + "$secondword" 
+                }
+            }
+            write-host "we got opts:  $udsopts"
+            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$sessionid" + "$udsopts"
+            Try
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
+            }
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                $RestError | ConvertFrom-JSON
+            }
+            else
+            {
+                $resp.result
+            }
+        }
+    }
+    else
+    # a udstask command with args is going to fail, but we will let the appliance generate the error and print it nicely
+    {
+        $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$sessionid"
+        Try
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
+        }
+        Catch
+        {
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            $RestError | ConvertFrom-JSON
+        }
+        else
+        {
+            $resp.result
+        }
+    }   
 }
 
 
@@ -284,18 +554,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     if ($RestError) 
     {
-        if ( $RestError -like '*10011*' )
-        {
-            Write-Host "Failed to login to $vdpip.  Check username and password"
-        }
-        elseif ( $RestError -like '*10017*' )
-        {
-            Write-Host "Failed to login to $vdpip.  Is this really an VDP?"
-        }
-        else 
-        {
-            Write-Host "Failed to login to VDP with $RestError"
-        }
+        $RestError | ConvertFrom-JSON
     }
     else
     {
@@ -332,7 +591,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     }
     if ($RestError) 
     {
-            Write-Host "Failed to logout"
+        $RestError | ConvertFrom-JSON
     }
     else
     {
