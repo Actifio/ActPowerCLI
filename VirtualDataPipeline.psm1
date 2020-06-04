@@ -713,7 +713,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         }
         else
         #  we got more than one word
-        # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  We dump blank lines
+        # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  
         {
             $dashsep = $argprint.Split("-") -notmatch '^\s*$'
             foreach ($arg in $dashsep) 
@@ -727,14 +727,29 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
                     $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
                 }
                 else
-                {
+                {   
+                    write-host "we got $"
                     $firstword = $trimm.Split([Environment]::NewLine) | Select -First 1
-                    $secondword = $trimm.Split([Environment]::NewLine) | Select -last 1
-                    $udsopts =  $udsopts + "&" + "$firstword" + "=" + "$secondword" 
+                    $secondword = $trimm.Split([Environment]::NewLine) | Select -First 2 | Select -last 1
+                    $thirdword = $trimm.Split([Environment]::NewLine) | Select -First 3 | Select -last 1
+                    write-host "we got first $firstword"
+                    write-host "we got second $secondword"
+                    write-host "we got third $thirdword"
+                    # we are going to encode secondword 
+                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                    if ($thirdword)
+                    {
+                        $udsopts =  $udsopts + "&" + "$firstword" + "=" + '"' + "$Encodedsecondword" + '"' + "&argument=" + "$thirdword" 
+                    }
+                    else
+                    {
+                        $udsopts =  $udsopts + "&" + "$firstword" + "=" + "$Encodedsecondword" 
+                    }
                 }
             }
             write-host "we got opts:  $udsopts"
             $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$vdpsessionid" + "$udsopts"
+            $url
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
