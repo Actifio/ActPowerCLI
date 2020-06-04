@@ -192,24 +192,24 @@ The majority of report commands that are available in a VDP Appliance are availa
 
 #>
 # get-sargreport function
-function get-sargreport([string]$reportname)
+function get-sargreport([string]$reportname,[String]$sargparms)
 {
-    if ($args) 
+    if ($sargparms) 
 	{
         # we are going to send all the SARG command opts in REST format as sargopts
         $sargopts = $null
-        $argprint = $args | Out-String
         # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  We dump blank lines
-        $dashsep = $argprint.Split("-") -notmatch '^\s*$'
-        foreach ($arg in $dashsep) 
+        $sargparms = " " + $sargparms 
+        $dashsep = $sargparms.Split(" -") -notmatch '^\s*$'
+        foreach ($line in $dashsep) 
             {
                 # remove any whitespace at the end
-                $trimm = $arg.TrimEnd()
+                $trimm = $line.TrimEnd()
                 # do we have a single letter.  If so this is out parm.   If the user didn't use a dash this will also work,  so -i and i both work
                 $length = $trimm.length
                 if ( $length -eq 1 )
                 {
-                        $sargopts =  $sargopts + "$trimm" + "=true" + "&"
+                        $sargopts = $sargopts + "&" + "$trimm" + "=true" 
                 }
                 # if length is greater than one then we either have a parm with search  like -a 1232  or we have grouped parms like -ty
                 if ( $length -gt 1 )
@@ -219,27 +219,27 @@ function get-sargreport([string]$reportname)
                     if ( $parmcount.words -eq 1 )
                     { 
                         $splitblob = $trimm.tochararray()
-                        foreach ($arg in $splitblob) 
+                        foreach ($blob in $splitblob) 
                         {
-                            $sargopts =  $sargopts + "$arg" + "=true" + "&"
+                            $sargopts =  $sargopts + "&" + "$blob" + "=true"
                         }
                     }
                     # if we have more then one word then we have a search like  -a 1234
                     if ( $parmcount.words -gt 1 )
                     { 
                         # the first word will be the parm   If the first word is more than one character long then there is an issue and we ignore it
-                        $firstword = $trimm.Split([Environment]::NewLine) | Select -First 1
+                        $firstword = $trimm.Split([Environment]::Space) | Select -First 1
                         $length = $firstword.length
                         if ( $length -eq 1 )
                         {
                             # the second word should be the search term   Spaces are not an issue
-                            $secondword = $trimm.Split([Environment]::NewLine) | Select -last 1
-                            $sargopts =  $sargopts + "$firstword" + "=" + "$secondword" + "&"
+                            $secondword = $trimm.substring(2)
+                            $sargopts =  $sargopts + "&" + "$firstword" + "=" + "$secondword" 
                         }
                     }
                 }
             }
-        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?" + "$sargopts" + "sessionid=$vdpsessionid"
+        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?" + "sessionid=$vdpsessionid"  + "$sargopts"
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -611,9 +611,9 @@ Example: setparameter -param systemlocation -value Chicago
 #>
 # this function will imitate udstask so that users don't need to remember each
 # individual cmdlet.
+
 Function udstask ([string]$subcommand, [switch][alias("h")]$help) 
 {
-
 	# if no subcommand is provided, get the list of udstask commands and exit.
 	if ( $subcommand -eq "" )
 	{
@@ -686,12 +686,12 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
     {
         # we are going to send all the UDS command opts in REST format as udsopts
         $udsopts = $null
-        $argprint = $args | Out-String
-        $parmcount = $argprint | measure-object -word
+        $taskparms = "$args"
+        $parmcount = $taskparms | measure-object -word
         # if we got a single item this is the object.  Sometimes this works
         if ( $parmcount.words -eq 1)
         {
-            $udsopts = "&argument=" + $argprint
+            $udsopts = "&argument=" + $taskparms
             $udsopts
             $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$vdpsessionid" + "$udsopts"
             Try
@@ -713,43 +713,43 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         }
         else
         #  we got more than one word
-        # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  
+        # we will split on dashes.   We pop a space in first of the first parm so we split on " -"  This should handle dashes in variables
+        # ch commands have a value at the very end that is the ID we are working on,  all other commands dont have this quirk
         {
-            $dashsep = $argprint.Split("-") -notmatch '^\s*$'
-            foreach ($arg in $dashsep) 
+            if ( $subcommand.Substring(0, 2) -eq "ch" )
+            { 
+                Write-host "we got a ch object $chobject"
+                $chobject = $taskparms.Split([Environment]::Space) | Select -Last 1
+                $chparmcount = $taskparms | measure-object -word
+                $parmcountwewant = $chparmcount.words -1
+                $taskparms = $taskparms.Split([Environment]::Space) | Select -first $parmcountwewant
+            }
+            $taskparms = " " + $taskparms
+            $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
+            foreach ($line in $dashsep) 
             {
                 # remove any whitespace at the end
-                $trimm = $arg.TrimEnd()
+                $trimm = $line.TrimEnd()
                 # is there on word here or two?  If one word we have a single word parameter
-                $parmcount = $trimm | measure-object -word
-                if ( $parmcount.words -eq 1)
+                $innerparmcount = $trimm | measure-object -word
+                if ( $innerparmcount.words -eq 1)
                 {
                     $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
                 }
                 else
-                {   
-                    write-host "we got $"
-                    $firstword = $trimm.Split([Environment]::NewLine) | Select -First 1
-                    $secondword = $trimm.Split([Environment]::NewLine) | Select -First 2 | Select -last 1
-                    $thirdword = $trimm.Split([Environment]::NewLine) | Select -First 3 | Select -last 1
-                    write-host "we got first $firstword"
-                    write-host "we got second $secondword"
-                    write-host "we got third $thirdword"
-                    # we are going to encode secondword 
+                {
+                    $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                    $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
                     $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    if ($thirdword)
-                    {
-                        $udsopts =  $udsopts + "&" + "$firstword" + "=" + '"' + "$Encodedsecondword" + '"' + "&argument=" + "$thirdword" 
-                    }
-                    else
-                    {
-                        $udsopts =  $udsopts + "&" + "$firstword" + "=" + "$Encodedsecondword" 
-                    }
+                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
                 }
+            }
+            if ( $subcommand.Substring(0, 2) -eq "ch" )
+            {
+                $udsopts = $udsopts + "&argument=" + "$chobject"
             }
             write-host "we got opts:  $udsopts"
             $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$vdpsessionid" + "$udsopts"
-            $url
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
@@ -772,6 +772,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
     # a udstask command with args is going to fail, but we will let the appliance generate the error and print it nicely
     {
         $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$vdpsessionid"
+        $urls
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
