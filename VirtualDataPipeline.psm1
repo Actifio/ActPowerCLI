@@ -3,12 +3,17 @@
 Login to a VDP appliance.
 
 .EXAMPLE
-connect-act -acthost 172.25.2.110 -actuser admin -passwordfile pass.key
+connect-act -acthost 10.65.5.35 -actuser admin -passwordfile pass.key
 Using a password file to login. Path to password file can be absolute or relative path.
 
 .EXAMPLE
-connect-act -acthost 172.25.2.110 -actuser admin -password Password123
+connect-act -acthost 10.65.5.35 -actuser admin -password Password123
 Example using the password on the command line itself to login.
+
+.EXAMPLE
+connect-act 10.65.5.35 admin -ignorecerts
+Example where certificate checking is disabled.
+
 
 .DESCRIPTION
 Connect to VDP Appliance using a username and password or by specifying -passwordfile
@@ -18,6 +23,10 @@ If no password is provided and no passwordfile flag is set, then the cmdlet will
  prompt for a password
 
 Using -quiet suppresses all successful messages
+
+SSL Certificate checking is performed during Connect-Act
+To always accept and skip the check use -ignorecerts
+
 
 .PARAMETER acthost
 Required. Hostname or IP to connect to.ACTPRIVILEGES
@@ -30,16 +39,16 @@ Actifio Desktop login screen.
 Optional. If not provided, a prompt will be presented. If provided, it can be provided
 as clear text.
 
-example: connect-act -acthost 172.25.2.110 -actuser admin -password Password123
+example: connect-act -acthost 10.65.5.35 -actuser admin -password Password123
 
 .PARAMETER passwordfile
 Optional. This is a string that instructs Connect-Act to use stored credentials as 
 opposed to interactive login. In order to use -passwordfile, you must use 
 save-actpassword first to save the password.
 
-example: connect-act -acthost 172.25.2.110 -actuser admin -passwordfile pass.key
-example: connect-act 172.25.2.110 admin -passwordfile .\pass.key
-example: connect-act 172.25.2.110 admin -passwordfile pass.key
+example: connect-act -acthost 10.65.5.35 -actuser admin -passwordfile pass.key
+example: connect-act 10.65.5.35 admin -passwordfile .\pass.key
+example: connect-act 10.65.5.35 admin -passwordfile pass.key
 
 
 The password file can be a relative path or a fully qualified path to the file
@@ -47,11 +56,11 @@ The password file can be a relative path or a fully qualified path to the file
 .PARAMETER quiet
 Optional. Suppresses all success messages. Use this in scripting when you
 don't want to see a successful login message. To validate the connection, check
-for variable $vdpsessionid
+for variable $ACTSESSIONID
 
 
 #>
-function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession) 
+function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch]$ignorecerts) 
 {
 
     if ( $acthost -eq $null -or $acthost -eq "" )
@@ -61,6 +70,45 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     else
     {
         $vdpip = $acthost
+    }
+    
+    # test  for valid cert unless user said not to
+    if ( -not $ignorecerts ) 
+    {
+        $RestError = $null
+        Try 
+        {
+            Invoke-RestMethod -Uri https://$acthost/actifio/api/version > $null	
+        } 
+        Catch 
+        { 
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            Write-Host -ForeGroundColor Yellow "The SSL certificate from https://$acthost is not trusted. Please choose one of the following options";
+            Write-Host -ForeGroundColor Yellow "(I)gnore & continue";
+            Write-Host -ForeGroundColor Yellow "(C)ancel";
+            $validresp = ("i", "I", "c", "C");
+            $certaction = $null
+        
+            # prompt until we get a proper response.	
+            while ( $validresp.Contains($certaction) -eq $false )
+            {
+                $certaction = Read-Host "Please select an option";
+            }
+            # based on the action, do the right thing.
+            if ( $certaction -eq "i" -or $certaction -eq "I" )
+            {
+                # set IGNOREACTCERTS so that we ignore self-signed certs
+                $env:IGNOREACTCERTS = $acthost;
+            }
+            elseif ( $certaction -eq "c" -or $certaction -eq "C" ) 
+            {
+                # just exit
+                return;
+            }
+        }
     }
 
     if ( $actuser -eq $null -or $actuser -eq "" )
@@ -98,13 +146,14 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
 		}
 	}
 
-
+    # currently sending password encoded with base64.  Not perfect, but have no been able to get -credential to work
     $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
-    $Url = "https://$vdpip/actifio/api/login?name=$vdpuser&password=$UnsecurePassword&vendorkey=1955-4670-2506-0A51-0841-5829-0622-4418-5A07-1146-0343-5444"
+    $Header = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($vdpuser+":"+$UnsecurePassword))}
+    $Url = "https://$vdpip/actifio/api/login?name=$vdpuser&password=$UnsecurePassword&vendorkey=055B-3572-510B-6674-366A-6015-376A-0257-044D-45"
     $RestError = $null
     Try
     {
-        $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
+        $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
     }
     Catch
     {
@@ -116,7 +165,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     else
     {
-        $global:vdpsessionid = $resp.sessionid
+        $global:ACTSESSIONID = $resp.sessionid
         $global:vdpip = $vdpip
         if ($quiet)
         { 
@@ -124,7 +173,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         } 
         elseif ($printsession)
         {
-            Write-Host "$vdpsessionid" 
+            Write-Host "$ACTSESSIONID" 
         }
         else
         { 
@@ -148,7 +197,7 @@ Disconnect from the VDP appliance and end the session nicely.
 # this function disconnects from the VDP Appliance
 function Disconnect-Act([switch][alias("q")]$quiet)
 {
-    $Url = "https://$vdpip/actifio/api/logout" + "?&sessionid=$vdpsessionid"
+    $Url = "https://$vdpip/actifio/api/logout" + "?&sessionid=$ACTSESSIONID"
     $RestError = $null
     Try
     {
@@ -239,7 +288,7 @@ function get-sargreport([string]$reportname,[String]$sargparms)
                     }
                 }
             }
-        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?" + "sessionid=$vdpsessionid"  + "$sargopts"
+        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -261,7 +310,7 @@ function get-sargreport([string]$reportname,[String]$sargparms)
     } 
     else 
 	{
-        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?sessionid=$vdpsessionid" 
+        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -288,7 +337,7 @@ function get-sargreport([string]$reportname,[String]$sargparms)
 function makeSARGCmdlets()
 {
     
-    $Url = "https://$vdpip/actifio/api/report/reportlist?p=true&sessionid=$vdpsessionid"
+    $Url = "https://$vdpip/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
     Try
     {    
         $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -389,7 +438,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 	{
         Try
         {
-        $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$vdpsessionid"
+        $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
         $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
         }
         Catch
@@ -415,7 +464,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 		{
             Try
             {
-			    $Url = "https://$vdpip/actifio/api/info/help/$subcommand" + "?sessionid=$vdpsessionid"
+			    $Url = "https://$vdpip/actifio/api/info/help/$subcommand" + "?sessionid=$ACTSESSIONID"
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
             }
             Catch
@@ -436,7 +485,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 		{
             Try
             {
-			    $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$vdpsessionid"
+			    $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
             }
             Catch
@@ -466,7 +515,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         if ($argument -and $filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$vdpsessionid" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" + "&apistart=$apistart" 
+            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" + "&apistart=$apistart" 
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -487,7 +536,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         }
         elseif ($argument)
         {
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$vdpsessionid" + "&argument=" + "$argument" + "&apistart=$apistart" 
+            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&argument=" + "$argument" + "&apistart=$apistart" 
             Try    
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -509,7 +558,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         elseif ($filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$vdpsessionid" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" 
+            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" 
             Try    
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -530,7 +579,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         }
         else
         {
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$vdpsessionid"  + "&apistart=$apistart" 
+            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID"  + "&apistart=$apistart" 
             Try    
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url 
@@ -617,7 +666,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
 	# if no subcommand is provided, get the list of udstask commands and exit.
 	if ( $subcommand -eq "" )
 	{
-        $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$vdpsessionid"
+        $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -642,7 +691,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
 		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
 		if ( $subcommand -ne "")
 		{
-            $Url = "https://$vdpip/actifio/api/task/help/$subcommand" + "?&sessionid=$vdpsessionid"
+            $Url = "https://$vdpip/actifio/api/task/help/$subcommand" + "?&sessionid=$ACTSESSIONID"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -661,7 +710,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             }
 		} else 
 		{
-            $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$vdpsessionid"
+            $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -693,7 +742,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         {
             $udsopts = "&argument=" + $taskparms
             $udsopts
-            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$vdpsessionid" + "$udsopts"
+            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
@@ -749,7 +798,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
                 $udsopts = $udsopts + "&argument=" + "$chobject"
             }
             write-host "we got opts:  $udsopts"
-            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$vdpsessionid" + "$udsopts"
+            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
@@ -771,7 +820,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
     else
     # a udstask command with args is going to fail, but we will let the appliance generate the error and print it nicely
     {
-        $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$vdpsessionid"
+        $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID"
         $urls
         Try
         {
