@@ -786,7 +786,6 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         {
             if ( $subcommand.Substring(0, 2) -eq "ch" )
             { 
-                Write-host "we got a ch object $chobject"
                 $chobject = $taskparms.Split([Environment]::Space) | Select -Last 1
                 $chparmcount = $taskparms | measure-object -word
                 $parmcountwewant = $chparmcount.words -1
@@ -816,7 +815,6 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             {
                 $udsopts = $udsopts + "&argument=" + "$chobject"
             }
-            write-host "we got opts:  $udsopts"
             $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
             Try
             {
