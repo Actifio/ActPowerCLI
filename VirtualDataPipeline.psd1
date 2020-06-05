@@ -12,7 +12,7 @@
 RootModule = 'VirtualDataPipeline.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.0'
+ModuleVersion = '10.0.1.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
