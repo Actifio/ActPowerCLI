@@ -75,16 +75,25 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     # test  for valid cert unless user said not to
     if ( -not $ignorecerts ) 
     {
-        $RestError = $null
         Try 
         {
-            Invoke-RestMethod -Uri https://$acthost/actifio/api/version > $null	
+            $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/version -TimeoutSec 15
         } 
         Catch 
         { 
             $RestError = $_
         }
-        if ($RestError) 
+        if ($RestError -like "The operation was canceled.")
+        {
+            Write-Host "No response was received from $acthost after 15 seconds"
+            return;
+        }
+        elseif ($RestError -like "Connection refused")
+        {
+            Write-Host "Connection refused received from $acthost"
+            return;
+        }
+        elseif ($RestError) 
         {
             Write-Host -ForeGroundColor Yellow "The SSL certificate from https://$acthost is not trusted. Please choose one of the following options";
             Write-Host -ForeGroundColor Yellow "(I)gnore & continue";
@@ -108,6 +117,12 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
                 # just exit
                 return;
             }
+        }
+        else 
+        {
+            Write-Host "An error occurred.";
+            Write-Host $_.Exception.Message;
+            return;
         }
     }
 
@@ -159,7 +174,17 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     {
         $RestError = $_
     }
-    if ($RestError) 
+    if ($RestError -like "The operation was canceled.")
+    {
+        Write-Host "No response was received from $acthost after 15 seconds"
+        return;
+    }
+    elseif ($RestError -like "Connection refused")
+    {
+        Write-Host "Connection refused received from $acthost"
+        return;
+    }
+    elseif ($RestError) 
     {
         $RestError | ConvertFrom-JSON
     }
