@@ -118,12 +118,6 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
                 return;
             }
         }
-        else 
-        {
-            Write-Host "An error occurred.";
-            Write-Host $_.Exception.Message;
-            return;
-        }
     }
 
     if ( $actuser -eq $null -or $actuser -eq "" )
