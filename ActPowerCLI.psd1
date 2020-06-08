@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.4'
+ModuleVersion = '10.0.1.5'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ PowerShellVersion = '7.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','Save-ActPassword','Get-SARGReport','Make-SARGCmdlets','Set-ActAPILimit','Test-VDPConnection')
+FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','Save-ActPassword','Get-SARGReport','Make-SARGCmdlets','Set-ActAPILimit','Test-ActConnection')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'

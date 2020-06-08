@@ -226,7 +226,7 @@ Disconnect from the VDP appliance and end the session nicely.
 function Disconnect-Act([switch][alias("q")]$quiet)
 {   
     # make sure we have something to disconnect from
-    Test-VDPConnection
+    Test-ActConnection
     # disconnect
     $Url = "https://$acthost/actifio/api/logout" + "?&sessionid=$ACTSESSIONID"
     $RestError = $null
@@ -276,7 +276,7 @@ The majority of report commands that are available in a VDP Appliance are availa
 function Get-SARGReport([string]$reportname,[String]$sargparms)
 {
     # make sure we have something to connect to
-    Test-VDPConnection
+    Test-ActConnection
 
     if ($sargparms) 
 	{
@@ -372,7 +372,7 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
 function Make-SARGCmdlets()
 {
     # make sure we have something to connect to
-    Test-VDPConnection
+    Test-ActConnection
     $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
     Try
     {    
@@ -485,7 +485,7 @@ Example: getgcschedule -type gc
 Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
 {
     # make sure we have something to connect to
-    Test-VDPConnection
+    Test-ActConnection
 	# if no subcommand is provided, display the list of subcommands and exit
 	if ( $subcommand -eq "" )
 	{
@@ -744,7 +744,7 @@ Example: setparameter -param systemlocation -value Chicago
 Function udstask ([string]$subcommand, [switch][alias("h")]$help) 
 {
     # make sure we have something to connect to
-    Test-VDPConnection
+    Test-ActConnection
     # if no subcommand is provided, get the list of udstask commands and exit.
 	if ( $subcommand -eq "" )
 	{
@@ -975,7 +975,7 @@ Function Save-ActPassword([string]$filename)
 }
 
 # this function prevents errors trying to  run commands without these variables set.
-Function Test-VDPConnection
+Function Test-ActConnection
 {
     if ( (!($ACTSESSIONID)) -or (!($acthost)) )
     {
