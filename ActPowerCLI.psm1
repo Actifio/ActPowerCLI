@@ -71,11 +71,11 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
 
     if ( $acthost -eq $null -or $acthost -eq "" )
     {
-    $vdpip = Read-Host "IP or Name of VDP"
+    $acthost = Read-Host "IP or Name of VDP"
     }
     else
     {
-        $vdpip = $acthost
+        $acthost = $acthost
     }
     
     # test  for valid cert unless user said not to
@@ -167,7 +167,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     # password needs to be sent as base64 per API Guide
     $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
     $Header = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($vdpuser+":"+$UnsecurePassword))}
-    $Url = "https://$vdpip/actifio/api/login?name=$vdpuser&password=$UnsecurePassword&vendorkey=$vendorkey"
+    $Url = "https://$acthost/actifio/api/login?name=$vdpuser&password=$UnsecurePassword&vendorkey=$vendorkey"
     $RestError = $null
     Try
     {
@@ -194,7 +194,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     else
     {
         $global:ACTSESSIONID = $resp.sessionid
-        $global:vdpip = $vdpip
+        $global:acthost = $acthost
         if ($quiet)
         { 
             return 
@@ -207,7 +207,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         { 
             Write-Host "Login Successful!"
         }
-        makeSARGCmdlets
+        Make-SARGCmdlets
     }
 } 
 
@@ -224,8 +224,11 @@ Disconnect from the VDP appliance and end the session nicely.
 #>
 # this function disconnects from the VDP Appliance
 function Disconnect-Act([switch][alias("q")]$quiet)
-{
-    $Url = "https://$vdpip/actifio/api/logout" + "?&sessionid=$ACTSESSIONID"
+{   
+    # make sure we have something to disconnect from
+    Test-VDPConnection
+    # disconnect
+    $Url = "https://$acthost/actifio/api/logout" + "?&sessionid=$ACTSESSIONID"
     $RestError = $null
     Try
     {
@@ -248,6 +251,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
         else
         { 
             Write-Host "Success!"
+            $global:ACTSESSIONID = ""
         }
     }
 }
@@ -257,20 +261,23 @@ function Disconnect-Act([switch][alias("q")]$quiet)
 Executes SARG commands via a rest API hosted on a VDP Appliance.
 
 .EXAMPLE
-get-sargreport reportlist
+Get-SARGReport reportlist
 List out the possible reports available.
 
 .EXAMPLE
-get-sargreport reportimages -a 123456
+Get-SARGReport reportimages -a 123456
 Runs reportimages report for the appid 123456
 
 .DESCRIPTION
 The majority of report commands that are available in a VDP Appliance are available via ActPowerCLI module.
 
 #>
-# get-sargreport function
-function get-sargreport([string]$reportname,[String]$sargparms)
+# Get-SARGReport function
+function Get-SARGReport([string]$reportname,[String]$sargparms)
 {
+    # make sure we have something to connect to
+    Test-VDPConnection
+
     if ($sargparms) 
 	{
         # we are going to send all the SARG command opts in REST format as sargopts
@@ -316,7 +323,7 @@ function get-sargreport([string]$reportname,[String]$sargparms)
                     }
                 }
             }
-        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
+        $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -338,7 +345,7 @@ function get-sargreport([string]$reportname,[String]$sargparms)
     } 
     else 
 	{
-        $Url = "https://$vdpip/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
+        $Url = "https://$acthost/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -362,10 +369,11 @@ function get-sargreport([string]$reportname,[String]$sargparms)
 
 
 # create the functions so that report* commands work like they do with SSH CLI
-function makeSARGCmdlets()
+function Make-SARGCmdlets()
 {
-    
-    $Url = "https://$vdpip/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
+    # make sure we have something to connect to
+    Test-VDPConnection
+    $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
     Try
     {    
         $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -387,14 +395,14 @@ function makeSARGCmdlets()
 	# get the list of sarg commands and set an item for each
 	foreach ($cmd in $sargcmdlist) 
 	{
-		set-item -path function:global:$cmd -value { get-sargreport $cmd $args}.getNewClosure(); 
+		set-item -path function:global:$cmd -value { Get-SARGReport $cmd $args}.getNewClosure(); 
     }
     # handle reportlist since it wont report itself
-    set-item -path function:global:reportlist -value { get-sargreport reportlist -p}.getNewClosure();
+    set-item -path function:global:reportlist -value { Get-SARGReport reportlist -p}.getNewClosure();
 }
 
 # offer a way to limit the maximum number of results in a single lookup
-function set-ActAPILimit([int]$userapilimit)
+function Set-ActAPILimit([int]$userapilimit)
 {
     if ( $userapilimit -eq "" )
     {
@@ -476,12 +484,14 @@ Example: getgcschedule -type gc
 # handle request for udsinfo command
 Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
 {
+    # make sure we have something to connect to
+    Test-VDPConnection
 	# if no subcommand is provided, display the list of subcommands and exit
 	if ( $subcommand -eq "" )
 	{
         Try
         {
-        $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
+        $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
         $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
         }
         Catch
@@ -507,7 +517,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 		{
             Try
             {
-			    $Url = "https://$vdpip/actifio/api/info/help/$subcommand" + "?sessionid=$ACTSESSIONID"
+			    $Url = "https://$acthost/actifio/api/info/help/$subcommand" + "?sessionid=$ACTSESSIONID"
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
             }
             Catch
@@ -528,7 +538,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 		{
             Try
             {
-			    $Url = "https://$vdpip/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
+			    $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
             }
             Catch
@@ -573,7 +583,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         if ($argument -and $filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -594,7 +604,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         }
         elseif ($argument)
         {
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             Try    
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -616,7 +626,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         elseif ($filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             Try    
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -637,7 +647,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         }
         else
         {
-            $Url = "https://$vdpip/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID"  + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID"  + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             Try    
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url 
@@ -733,10 +743,12 @@ Example: setparameter -param systemlocation -value Chicago
 
 Function udstask ([string]$subcommand, [switch][alias("h")]$help) 
 {
-	# if no subcommand is provided, get the list of udstask commands and exit.
+    # make sure we have something to connect to
+    Test-VDPConnection
+    # if no subcommand is provided, get the list of udstask commands and exit.
 	if ( $subcommand -eq "" )
 	{
-        $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
+        $Url = "https://$acthost/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -761,7 +773,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
 		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
 		if ( $subcommand -ne "")
 		{
-            $Url = "https://$vdpip/actifio/api/task/help/$subcommand" + "?&sessionid=$ACTSESSIONID"
+            $Url = "https://$acthost/actifio/api/task/help/$subcommand" + "?&sessionid=$ACTSESSIONID"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -780,7 +792,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             }
 		} else 
 		{
-            $Url = "https://$vdpip/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
+            $Url = "https://$acthost/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
@@ -811,8 +823,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         if ( $parmcount.words -eq 1)
         {
             $udsopts = "&argument=" + $taskparms
-            $udsopts
-            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+            $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
@@ -866,7 +877,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             {
                 $udsopts = $udsopts + "&argument=" + "$chobject"
             }
-            $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+            $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
             Try
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
@@ -888,8 +899,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
     else
     # a udstask command with args is going to fail, but we will let the appliance generate the error and print it nicely
     {
-        $Url = "https://$vdpip/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID"
-        $urls
+        $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID"
         Try
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
@@ -964,3 +974,16 @@ Function Save-ActPassword([string]$filename)
 	}
 }
 
+# this function prevents errors trying to  run commands without these variables set.
+Function Test-VDPConnection
+{
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) )
+    {
+        Write-host ""
+        Write-Host "Error"
+        Write-Host "-----"
+        Write-Host "Not logged in or session expired. Please login using Connect-Act"
+        Write-Host ""
+        break;
+    }
+}
