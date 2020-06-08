@@ -189,7 +189,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     elseif ($RestError) 
     {
-        $RestError | ConvertFrom-JSON
+        Test-ActJSON $RestError
     }
     else
     {
@@ -207,7 +207,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         { 
             Write-Host "Login Successful!"
         }
-        Make-SARGCmdlets
+        New-SARGCmdlets
     }
 } 
 
@@ -240,7 +240,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     }
     if ($RestError) 
     {
-        $RestError | ConvertFrom-JSON
+        Test-ActJSON $RestError
     }
     else
     {
@@ -326,7 +326,7 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
         $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
         Try
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url 
         }
         Catch
         {
@@ -334,8 +334,7 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
         }
         if ($RestError) 
         {
-            $RestError | ConvertFrom-JSON
-            Return
+            Test-ActJSON $RestError
         }
         else
         {
@@ -348,7 +347,7 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
         $Url = "https://$acthost/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
         Try
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url  
         }
         Catch
         {
@@ -356,8 +355,7 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
         }
         if ($RestError) 
         {
-            $RestError | ConvertFrom-JSON
-            Return
+            Test-ActJSON $RestError
         }
         else
         {
@@ -369,7 +367,7 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
 
 
 # create the functions so that report* commands work like they do with SSH CLI
-function Make-SARGCmdlets()
+function New-SARGCmdlets()
 {
     # make sure we have something to connect to
     Test-ActConnection
@@ -384,8 +382,7 @@ function Make-SARGCmdlets()
     }
     if ($RestError) 
     {
-        $RestError | ConvertFrom-JSON
-        Return
+        Test-ActJSON $RestError
     }
     else
     {
@@ -500,8 +497,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         }
         if ($RestError) 
         {
-            $RestError | ConvertFrom-JSON
-            Return
+            Test-ActJSON $RestError
         }
         else
         {
@@ -526,8 +522,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
-                Return
+                Test-ActJSON $RestError
             }
             else
             {
@@ -547,8 +542,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
-                Return
+                Test-ActJSON $RestError
             }
             else
             {
@@ -594,8 +588,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
-                Return
+                Test-ActJSON $RestError
             }
             else
             {
@@ -615,8 +608,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
-                Return
+                Test-ActJSON $RestError
             }
             else
             {
@@ -637,8 +629,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
-                Return
+                Test-ActJSON $RestError
             }
             else
             {
@@ -658,8 +649,7 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
-                Return
+                Test-ActJSON $RestError
             }
             else
             {
@@ -759,7 +749,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         }
         if ($RestError) 
         {
-            $RestError | ConvertFrom-JSON
+            Test-ActJSON $RestError
         }
         else
         {
@@ -784,7 +774,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
+                Test-ActJSON $RestError
             }
             else
             {
@@ -803,7 +793,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
+                Test-ActJSON $RestError
             }
             else
             {
@@ -834,7 +824,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
+                Test-ActJSON $RestError
             }
             else
             {
@@ -888,7 +878,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
             }
             if ($RestError) 
             {
-                $RestError | ConvertFrom-JSON
+                Test-ActJSON $RestError
             }
             else
             {
@@ -910,7 +900,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         }
         if ($RestError) 
         {
-            $RestError | ConvertFrom-JSON
+            Test-ActJSON $RestError
         }
         else
         {
@@ -985,5 +975,32 @@ Function Test-ActConnection
         Write-Host "Not logged in or session expired. Please login using Connect-Act"
         Write-Host ""
         break;
+    }
+}
+
+
+# errors can either have JSON and be easy to format or can be text,  we need to sniff
+Function Test-ActJSON()
+{
+    if ($args) 
+    {
+        Try
+        {
+            $isthisjson = $args | Test-Json -ErrorAction Stop
+            $validJson = $true
+        }
+        Catch
+        {
+            $validJson = $false
+        }
+        if (!$validJson) 
+        {
+            Write-Host "$args"
+        }
+        else
+        {
+            $args | ConvertFrom-JSON
+        }
+        Return
     }
 }
