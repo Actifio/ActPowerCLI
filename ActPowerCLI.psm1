@@ -1,3 +1,6 @@
+# # Version number of this module.
+# ModuleVersion = '10.0.1.10'
+
 <#
 .SYNOPSIS
 Login to a VDP appliance.
@@ -62,10 +65,10 @@ for variable $ACTSESSIONID
 #>
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch]$ignorecerts,[int]$actmaxapilimit) 
 {
-    # max objects returned will be limited to 12288, 3 x 4096 objects.  We do this by setting a limit which is 3 x 4096 +1.   Otherwise user can supply a limit
+    # max objects returned will be unlimited.   Otherwise user can supply a limit
     if ($actmaxapilimit -eq "")
     {
-        $actmaxapilimit = 12288
+        $actmaxapilimit = 0
     }
     $global:actmaxapilimit = $actmaxapilimit
 
@@ -207,6 +210,39 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         { 
             Write-Host "Login Successful!"
         }
+        # since login was successful, lets create some environment variables about the Appliance we connected to
+        Try 
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+        } 
+        Catch 
+        { 
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            Test-ActJSON $RestError
+        }
+        else
+        {
+            if ($resp.result)
+            {
+                $global:ACTPLATFORM = $resp.result.platform
+            }
+            else 
+            {
+                $global:ACTPLATFORM = "UNKNOWN"
+            }
+            if ($resp.result.version)
+            {
+                $global:ACTVERSION = $resp.result.version
+            }
+            else 
+            {
+                $global:ACTVERSION = "0.0.0.0"
+            }
+        }
+        # now we create CMDLets for SARG
         New-SARGCmdlets
     }
 } 
@@ -299,13 +335,22 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
                 if ( $length -gt 1 )
                 {
                     $parmcount = $trimm | measure-object -word
-                    # if we find only one word then all the parms are together like -ty so we process them one at a time
+                    # if we get one word and the first letter is a or d we are are going to assume its appID or days.   
+                    # its better for the user to always leave a space between letter and search object, so -a 123 rather than -a123  
                     if ( $parmcount.words -eq 1 )
                     { 
-                        $splitblob = $trimm.tochararray()
-                        foreach ($blob in $splitblob) 
+                        if ( ($trimm[0] -eq "a") -or ($trimm[0] -eq "d") )
                         {
-                            $sargopts =  $sargopts + "&" + "$blob" + "=true"
+                            $sargopts =  $sargopts + "&" + $trimm[0] + "=" + $trimm.substring(1)
+                        }
+                        # if we find only one word then all the parms are together like -ty so we process them one at a time
+                        else
+                        {
+                            $splitblob = $trimm.tochararray()
+                            foreach ($blob in $splitblob) 
+                            {
+                                $sargopts =  $sargopts + "&" + "$blob" + "=true"
+                            }
                         }
                     }
                     # if we have more then one word then we have a search like  -a 1234
@@ -324,44 +369,12 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
                 }
             }
         $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
-        Try
-        {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url 
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            $resp.result
-            Return
-        }
+        Get-ActAPIData  $Url
     } 
     else 
 	{
         $Url = "https://$acthost/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
-        Try
-        {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url  
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            $resp.result
-            Return
-        }
+        Get-ActAPIData  $Url
 	}
 }
 
@@ -395,22 +408,10 @@ function New-SARGCmdlets()
 		set-item -path function:global:$cmd -value { Get-SARGReport $cmd $args}.getNewClosure(); 
     }
     # handle reportlist since it wont report itself
-    set-item -path function:global:reportlist -value { Get-SARGReport reportlist -p}.getNewClosure();
+    set-item -path function:global:reportlist -value { Get-SARGReport reportlist "-p"O }.getNewClosure();
 }
 
-# offer a way to limit the maximum number of results in a single lookup
-function Set-ActAPILimit([int]$userapilimit)
-{
-    if ( $userapilimit -eq "" )
-    {
-        [int]$userapilimit = Read-Host "Number of objects to return in one command (must be a number, use 0 to reset to default of 12288)"
-    }
-    if ( $userapilimit -eq 0 )
-    {
-        $userapilimit = 12288
-    }
-    $global:actmaxapilimit = $userapilimit
-}
+
 
 
 <#
@@ -486,24 +487,8 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 	# if no subcommand is provided, display the list of subcommands and exit
 	if ( $subcommand -eq "" )
 	{
-        Try
-        {
         $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
-        $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            $resp.result
-            Return
-        }
+        Get-ActAPIData  $Url
     }
     
    if ( $help )
@@ -511,44 +496,12 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
 		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
 		if ( $subcommand -ne "")
 		{
-            Try
-            {
-			    $Url = "https://$acthost/actifio/api/info/help/$subcommand" + "?sessionid=$ACTSESSIONID"
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $resp.result | more
-                Return
-            }
+            $Url = "https://$acthost/actifio/api/info/help/$subcommand" + "?sessionid=$ACTSESSIONID"
+            Get-ActAPIData  $Url
 		} else 
 		{
-            Try
-            {
-			    $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $resp.result | more
-                Return
-            }
+            $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"   
+            Get-ActAPIData  $Url
         }		
     } 
   
@@ -558,103 +511,43 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
     # if somehow the default actmaxapilimit set at connect-act is gone, we set it again
     if ( $actmaxapilimit -eq "" )
     {
-        $actmaxapilimit = 12288
+        $actmaxapilimit = 0
     }
-    if ( $actmaxapilimit  -gt 4096 )
+    # the api limit per command should be either 4096 or if the user set actmaxapilimit to a number 1-4095 then use that value
+    if (( $actmaxapilimit  -gt 0 ) -and ( $actmaxapilimit  -le 4096 ))
     { 
-        $maxlimitpercommand = 4096
+        $maxlimitpercommand = $actmaxapilimit
     }
     else
     {
-        $maxlimitpercommand = $actmaxapilimit
+        $maxlimitpercommand = 4096
     }
 
     # we will keep looping grabbing 4096 objects per loop up till done = 1
     $done = 0
-    $nextlimit=0
     Do
     {
         if ($argument -and $filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
             $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
-            Try
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $output = $resp.result
-            }
+            $output = Get-ActAPIData  $Url
         }
         elseif ($argument)
         {
             $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
-            Try    
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $output = $resp.result
-            }
+            $output = Get-ActAPIData  $Url
         }
         elseif ($filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
             $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
-            Try    
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            }
-                Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $output = $resp.result
-            }
+            $output = Get-ActAPIData  $Url
         }
         else
         {
-            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID"  + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
-            Try    
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url 
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $output = $resp.result
-            }
+            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID"  + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"   
+            $output = Get-ActAPIData  $Url
         }
         # count the results and add 4096 to apistart.  If we got less than 4096 we are done and can finish by settting done to 1
         $objcount = $output.count
@@ -668,15 +561,14 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         else
         {
         $apistart = $apistart + 4096
+        $nextlimit = $apistart + 4096
         }
-        # if the API start is exactly the limit we can stop
         if ( $apistart -eq $actmaxapilimit)
         {
             $done = 1
         }
-        # but if the new apistart will push us past max results we set an apilimit to truncate the last grab
-        $nextlimit = $apistart + 4096
-        if ( $nextlimit -gt $actmaxapilimit )
+        # we now need to consider if the maxlimit should be trimmed
+        if (($actmaxapilimit -gt 4096) -and ( $nextlimit -gt $actmaxapilimit))
         {
             $maxlimitpercommand = $actmaxapilimit - $apistart
         }
@@ -739,66 +631,21 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
 	if ( $subcommand -eq "" )
 	{
         $Url = "https://$acthost/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
-        Try
-        {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            $resp.result 
-        }
+        Get-ActAPIData  $Url
 		return;
 	}
 
 	if ($help) 
 	{
-		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
+		# if there's no subcommand, then get help for udstask -h. If not, udstask subcommand -h
 		if ( $subcommand -ne "")
 		{
             $Url = "https://$acthost/actifio/api/task/help/$subcommand" + "?&sessionid=$ACTSESSIONID"
-            Try
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $resp.result | more
-            }
+            Get-ActAPIData $Url
 		} else 
 		{
-            $Url = "https://$acthost/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
-            Try
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $resp.result | more
-            }
+            $Url = "https://$acthost/actifio/api/task/help" + "?sessionid=$ACTSESSIONID"
+            Get-ActAPIData $Url
 		}
 		return;
     }
@@ -814,22 +661,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         {
             $udsopts = "&argument=" + $taskparms
             $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
-            Try
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $resp.result
-            }
+            Get-ActAPIDataPost  $Url
         }
         else
         #  we got more than one word
@@ -868,44 +700,14 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
                 $udsopts = $udsopts + "&argument=" + "$chobject"
             }
             $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
-            Try
-            {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
-            }
-            Catch
-            {
-                $RestError = $_
-            }
-            if ($RestError) 
-            {
-                Test-ActJSON $RestError
-            }
-            else
-            {
-                $resp.result
-            }
+            Get-ActAPIDataPost $Url
         }
     }
     else
     # a udstask command with args is going to fail, but we will let the appliance generate the error and print it nicely
     {
         $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID"
-        Try
-        {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri $Url
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            $resp.result
-        }
+        Get-ActAPIDataPost $Url
     }   
 }
 
@@ -979,6 +781,177 @@ Function Test-ActConnection
 }
 
 
+
+
+<#
+.SYNOPSIS
+Executes usvcinfo commands via a rest API hosted on CDS only. Usvcinfo is not supported on a Virtual Appliance.
+
+.EXAMPLE
+usvcinfo lsvdisk 1
+List details about vdisk id 1
+
+.EXAMPLE
+usvcinfo lsmdisk
+List out all the mdisks on a CDS appliance.
+
+.DESCRIPTION
+Usvcinfo commands are like udsinfo commands. They provide a view into settings and the current state
+of an Actifio CDS appliance. Usvcinfo commands are safe to run without causing any harm to the system.
+
+#>
+# function to imititate usvcinfo so that users don't need to remember each individual cmdlet
+Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
+{
+    # no help is available for this command
+    # make sure we have something to connect to
+    Test-ActConnection
+    # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
+    if (!($ACTPLATFORM))
+    {
+        Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is Unknown"
+        return
+    }
+	if ( $ACTPLATFORM.toLower() -ne "cds" ) 
+	{
+		Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
+		return
+	}
+	# if no subcommand is provided, display the list of subcommands and exit
+	if ( $subcommand -eq "" )
+	{
+        Write-Host "Please supply a command such as lsvdisk or lsmdisk"
+        return
+    }
+
+    if ($argument -and $filtervalue)
+    {
+        $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
+        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" 
+        Get-ActAPIData  $Url
+    }
+    elseif ($argument)
+    {
+        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&argument=" + "$argument" 
+        Get-ActAPIData  $Url
+    }
+    elseif ($filtervalue)
+    {
+        $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
+        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" 
+        Get-ActAPIData  $Url
+    }
+    else
+    {
+        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID"  
+        Get-ActAPIData  $Url
+    }
+}
+
+<#
+.SYNOPSIS
+Executes usvctask commands via a rest API hosted on CDS only. Usvctask is not supported on a Virtual Appliance.
+
+.DESCRIPTION
+Usvctask commands should only be executed by an administrator who has deep
+knowledge of IO and SAN storage. Usvctask commands can have undesired consequences if used incorrectly.
+
+Proceed with caution.
+
+#>
+# this command will allow users to run specific usvctask commands.
+Function usvctask([string]$subcommand)
+{
+	 # no help is available for this command
+    # make sure we have something to connect to
+    Test-ActConnection
+    # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
+    if (!($ACTPLATFORM))
+    {
+        Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is Unknown"
+        return
+    }
+	if ( $ACTPLATFORM.toLower() -ne "cds" ) 
+	{
+		Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
+		return
+	}
+	# if no subcommand is provided, display the list of subcommands and exit
+	if ( $subcommand -eq "" )
+	{
+        Write-Host "Please supply a command such as detectmdisk"
+        return
+    }
+    # if we got to here we are going to try a usvctask command
+    if ($args) 
+    {
+        # we are going to send all the usvctask command opts in REST format as udsopts
+        $udsopts = $null
+        $taskparms = "$args"
+        $parmcount = $taskparms | measure-object -word
+        # if we got a single item this is the object.  Sometimes this works
+        if ( $parmcount.words -eq 1)
+        {
+            $udsopts = "&argument=" + $taskparms
+            $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+            Get-ActAPIDataPost  $Url
+        }
+        else
+        #  we got more than one word
+        # we will split on dashes.   We pop a space in first of the first parm so we split on " -"  This should handle dashes in variables
+        # ch commands have a value at the very end that is the ID we are working on,  all other commands dont have this quirk
+        {
+            if ( $subcommand.Substring(0, 2) -eq "ch" )
+            { 
+                $chobject = $taskparms.Split([Environment]::Space) | Select -Last 1
+                $chparmcount = $taskparms | measure-object -word
+                $parmcountwewant = $chparmcount.words -1
+                $taskparms = $taskparms.Split([Environment]::Space) | Select -first $parmcountwewant
+            }
+            $taskparms = " " + $taskparms
+            $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
+            foreach ($line in $dashsep) 
+            {
+                # remove any whitespace at the end
+                $trimm = $line.TrimEnd()
+                # is there on word here or two?  If one word we have a single word parameter
+                $innerparmcount = $trimm | measure-object -word
+                if ( $innerparmcount.words -eq 1)
+                {
+                    $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
+                }
+                else
+                {
+                    $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                    $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
+                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
+                }
+            }
+            if ( $subcommand.Substring(0, 2) -eq "ch" )
+            {
+                $udsopts = $udsopts + "&argument=" + "$chobject"
+            }
+            $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+            Get-ActAPIDataPost $Url
+        }
+    }
+    else
+    # run the command without args.  Most commands require an arg, but the appliance will let the user know
+    {
+        $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID"
+        Get-ActAPIDataPost $Url
+    }   
+}
+
+
+# offer a way to limit the maximum number of results in a single lookup
+function Set-ActAPILimit([Parameter(Mandatory = $true)]
+[ValidateRange("NonNegative")][int]$userapilimit )
+{
+    $global:actmaxapilimit = $userapilimit
+}
+
 # errors can either have JSON and be easy to format or can be text,  we need to sniff
 Function Test-ActJSON()
 {
@@ -1002,5 +975,53 @@ Function Test-ActJSON()
             $args | ConvertFrom-JSON
         }
         Return
+    }
+}
+
+# this function takes the generated URL and tries to pull back the API Data
+Function Get-ActAPIData 
+{
+    if ($args)
+    {
+        Try    
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+        }
+        Catch
+        {
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            Test-ActJSON $RestError
+        }
+        else
+        {
+            $resp.result
+        }
+    }
+}
+
+# this function takes the generated URL and tries to pull back the API Data   It does Post rather than Get.  
+Function Get-ActAPIDataPost
+{
+    if ($args)
+    {
+        Try    
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
+        }
+        Catch
+        {
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            Test-ActJSON $RestError
+        }
+        else
+        {
+            $resp.result
+        }
     }
 }
