@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.10'
+# ModuleVersion = '10.0.1.11'
 
 <#
 .SYNOPSIS
@@ -63,16 +63,16 @@ for variable $ACTSESSIONID
 
 
 #>
-function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch]$ignorecerts,[int]$actmaxapilimit) 
+function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
     # max objects returned will be unlimited.   Otherwise user can supply a limit
-    if ($actmaxapilimit -eq "")
+    if (!($actmaxapilimit))
     {
         $actmaxapilimit = 0
     }
     $global:actmaxapilimit = $actmaxapilimit
 
-    if ( $acthost -eq $null -or $acthost -eq "" )
+    if (!($acthost))
     {
     $acthost = Read-Host "IP or Name of VDP"
     }
@@ -81,8 +81,8 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         $acthost = $acthost
     }
     
-    # test  for valid cert unless user said not to
-    if ( -not $ignorecerts ) 
+    # if user didnt tell us at start to ignore cert, we need to test it
+    if (!($ignorecerts))
     {
         Try 
         {
@@ -95,12 +95,12 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         if ($RestError -like "The operation was canceled.")
         {
             Write-Host "No response was received from $acthost after 15 seconds"
-            return;
+            break;
         }
         elseif ($RestError -like "Connection refused")
         {
             Write-Host "Connection refused received from $acthost"
-            return;
+            break;
         }
         elseif ($RestError) 
         {
@@ -119,17 +119,23 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
             if ( $certaction -eq "i" -or $certaction -eq "I" )
             {
                 # set IGNOREACTCERTS so that we ignore self-signed certs
-                $env:IGNOREACTCERTS = $acthost;
+                $global:IGNOREACTCERTS = "y"
+                $ignorecertsnow = "y"
             }
             elseif ( $certaction -eq "c" -or $certaction -eq "C" ) 
             {
                 # just exit
-                return;
+                break;
             }
         }
     }
+    else
+    {
+        $global:IGNOREACTCERTS = "y"
+    }
 
-    if ( $actuser -eq $null -or $actuser -eq "" )
+    # we need a user name
+    if (!($actuser))
     {
     $vdpuser = Read-Host "VDP user"
     }
@@ -138,9 +144,9 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         $vdpuser = $actuser
     }
 
-    if ( $passwordfile -eq $null -or $passwordfile -eq "" ) 
+    if (!($passwordfile)) 
 	{
-		if ($password -eq $null -or $password -eq "")
+		if (!($password))
 		{
 			# prompt for a password
 			[SecureString]$passwordenc = Read-Host -AsSecureString "Password";
@@ -174,7 +180,14 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     $RestError = $null
     Try
     {
-        $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
+        if ($IGNOREACTCERTS -eq "y")
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
+        }
+        else 
+        {
+            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
+        }
     }
     Catch
     {
@@ -210,38 +223,38 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         { 
             Write-Host "Login Successful!"
         }
-        # since login was successful, lets create some environment variables about the Appliance we connected to
-        Try 
-        {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
-        } 
-        Catch 
-        { 
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            if ($resp.result)
-            {
-                $global:ACTPLATFORM = $resp.result.platform
-            }
-            else 
-            {
-                $global:ACTPLATFORM = "UNKNOWN"
-            }
-            if ($resp.result.version)
-            {
-                $global:ACTVERSION = $resp.result.version
-            }
-            else 
-            {
-                $global:ACTVERSION = "0.0.0.0"
-            }
-        }
+         # since login was successful, lets create some environment variables about the Appliance we connected to
+         Try 
+         {
+             $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+         } 
+         Catch 
+         { 
+             $RestError = $_
+         }
+         if ($RestError) 
+         {
+             Test-ActJSON $RestError
+         }
+         else
+         {
+             if ($resp.result)
+             {
+                 $global:ACTPLATFORM = $resp.result.platform
+             }
+             else 
+             {
+                 $global:ACTPLATFORM = "UNKNOWN"
+             }
+             if ($resp.result.version)
+             {
+                 $global:ACTVERSION = $resp.result.version
+             }
+             else 
+             {
+                 $global:ACTVERSION = "0.0.0.0"
+             }
+         }
         # now we create CMDLets for SARG
         New-SARGCmdlets
     }
@@ -268,7 +281,14 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $RestError = $null
     Try
     {
-        $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
+        if ($IGNOREACTCERTS -eq "y")
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
+        }
+        else 
+        {
+            $resp = Invoke-RestMethod -Method POST -Uri $Url  -TimeoutSec 15
+        }
     }
     Catch
     {
@@ -386,8 +406,15 @@ function New-SARGCmdlets()
     Test-ActConnection
     $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
     Try
-    {    
-        $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+    {  
+        if ($IGNOREACTCERTS -eq "y")
+        {  
+            $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+        }
+        else
+        {
+            $reportlistout = Invoke-RestMethod -Method Get -Uri $Url
+        }
     }
     Catch
     {
@@ -505,6 +532,37 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         }		
     } 
   
+    # we are going to send all the args that is not the argument or filtervalue in REST format as udsopts
+    $udsopts = $null
+    if ($args) 
+    {
+        $taskparms = " " + "$args"
+        $parmcount = $taskparms | measure-object -word
+        $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
+        foreach ($line in $dashsep) 
+        {
+            # remove any whitespace at the end
+            $trimm = $line.TrimEnd()
+            # is there one word here or two?  If one word we have a single word parameter
+            $innerparmcount = $trimm | measure-object -word
+            if ( $innerparmcount.words -eq 1)
+            {
+                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
+            }
+            else
+            {
+                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
+                $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
+            }
+        }
+    }
+    if ($argument)
+    {
+        $udsopts =  $udsopts + "&argument=" + "$argument"
+    }
+
     # we didn't get asked for help so lets grab the output
     # we always start at apistart of 0 which is the first result
     $apistart = 0 
@@ -527,15 +585,15 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
     $done = 0
     Do
     {
-        if ($argument -and $filtervalue)
+        if ($udsopts -and $filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "$udsopts" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             $output = Get-ActAPIData  $Url
         }
-        elseif ($argument)
+        elseif ($udsopts)
         {
-            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&argument=" + "$argument" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             $output = Get-ActAPIData  $Url
         }
         elseif ($filtervalue)
@@ -656,7 +714,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
         $udsopts = $null
         $taskparms = "$args"
         $parmcount = $taskparms | measure-object -word
-        # if we got a single item this is the object.  Sometimes this works
+        # if we got a single item this is the object.  
         if ( $parmcount.words -eq 1)
         {
             $udsopts = "&argument=" + $taskparms
@@ -738,7 +796,7 @@ example: C:\Users\admin\actpass
 Function Save-ActPassword([string]$filename)
 {
 	# if no file is provided, prompt for one
-	if ( $filename -eq $null -or $filename -eq "" )
+	if (!($filename))
 	{
 		$filename = Read-Host "Filename";
 	}
@@ -797,10 +855,10 @@ List out all the mdisks on a CDS appliance.
 
 .DESCRIPTION
 Usvcinfo commands are like udsinfo commands. They provide a view into settings and the current state
-of an Actifio CDS appliance. Usvcinfo commands are safe to run without causing any harm to the system.
+of an Actifio CDS appliance. Usvcinfo commands do not change any settings or perform any actions.
 
 #>
-# function to imititate usvcinfo so that users don't need to remember each individual cmdlet
+# function to imitate usvcinfo so that users don't need to remember each individual cmdlet
 Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
 {
     # no help is available for this command
@@ -854,7 +912,7 @@ Executes usvctask commands via a rest API hosted on CDS only. Usvctask is not su
 
 .DESCRIPTION
 Usvctask commands should only be executed by an administrator who has deep
-knowledge of IO and SAN storage. Usvctask commands can have undesired consequences if used incorrectly.
+knowledge of the CDS platform. Usvctask commands can have undesired consequences if used incorrectly.
 
 Proceed with caution.
 
@@ -868,16 +926,16 @@ Function usvctask([string]$subcommand)
     # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
     if (!($ACTPLATFORM))
     {
-        Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is Unknown"
+        Write-Host "Error: usvctask command is only available on Actifio CDS. Current platform is Unknown"
         return
     }
 	if ( $ACTPLATFORM.toLower() -ne "cds" ) 
 	{
-		Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
+		Write-Host "Error: usvctask command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
 		return
 	}
 	# if no subcommand is provided, display the list of subcommands and exit
-	if ( $subcommand -eq "" )
+	if (!($subcommand))
 	{
         Write-Host "Please supply a command such as detectmdisk"
         return
@@ -985,7 +1043,14 @@ Function Get-ActAPIData
     {
         Try    
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+            if ($IGNOREACTCERTS -eq "y")
+            {  
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+            }
+            else 
+            {
+                $resp = Invoke-RestMethod -Method Get -Uri "$args" 
+            }
         }
         Catch
         {
@@ -1009,7 +1074,14 @@ Function Get-ActAPIDataPost
     {
         Try    
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
+            if ($IGNOREACTCERTS -eq "y")
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
+            }
+            else 
+            {
+                $resp = Invoke-RestMethod -Method Post -Uri "$args" 
+            }
         }
         Catch
         {
