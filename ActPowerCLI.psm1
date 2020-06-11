@@ -205,7 +205,15 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     elseif ($RestError) 
     {
-        Test-ActJSON $RestError
+        $loginfailure = Test-ActJSON $RestError
+        if ( ($loginfailure.err_code) -and (!($loginfailure.errormessage)) )
+        {
+            write-host "Login failed.  You may be trying to login to an AGM"
+        }
+        else
+        {
+            $loginfailure
+        }
     }
     else
     {
