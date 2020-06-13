@@ -1,21 +1,22 @@
 # ActPowerCLI
 A Powershell module for Powershell V7 that is compatible/replacement for the older Windows only ActPowerCLI that has been available for some time.
 
-# Why write a new Module?
+### Why write a new Module?
 
-The old module was written in C to handle Windows PowerShell not being 'REST API' friendly but this is not fully compatible with newer PowerShell versions.  PowerShell 7 needs new syntax to handle new functionality.  By writing a new module we also get one that is multi-platform.
+The old module was written in C to handle Windows PowerShell not being 'REST API' friendly. It is not fully compatible with newer PowerShell versions.  PowerShell 7 needs new syntax to handle new functionality.  By writing a new module we also get one that is multi-platform.
 
-# What about an AGM module?
+### What about an AGM module?
 
 It is being created.
 
-# What versions of PowerShell will this module work with?
+### What versions of PowerShell will this module work with?
 
 It was written and tested for PowerShell V7 with Linux, Mac OS and Windows
 
-# Is is compatible with the old ActPowerCLI?
+### Is it compatible with the old ActPowerCLI?
 
 It is a 100% replacement that is intended to be 100% compatible, meaning any existing PS1 scripts that rely on ActPowerCLI should continue to work.  Don't have the old (10.0.0 or 7.0.0.x versions) installed with the new 10.0.1.x version.
+
 
 ## Usage
 
