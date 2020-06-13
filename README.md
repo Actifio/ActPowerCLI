@@ -1,5 +1,5 @@
 # ActPowerCLI
-A Powershell module for Powershell V7 that is compatible/replacement for the older Windows only ActPowerCLI that has been available for some time.
+A Powershell module for Powershell V7 that is compatible/replacement for the older Windows only ActPowerCLI that has been available for some time from here:  https://github.com/Actifio/powershell
 
 ### Why write a new Module?
 
