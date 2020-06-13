@@ -3,8 +3,7 @@ A Powershell module for Powershell V7 that is compatible/replacement for the old
 
 # Why write a new Module?
 
-The old module was written in C as it had to handle Windows PowerShell not being 'REST API' friendly.  This made it large and hard to maintain.
-The old module is also not fully compatible with newer PowerShell versions.  PowerShell 7 needs new syntax to handle new functionality.  By using these functions we can make a much smaller module that is both modern and multiplatform.
+The old module was written in C to handle Windows PowerShell not being 'REST API' friendly but this is not fully compatible with newer PowerShell versions.  PowerShell 7 needs new syntax to handle new functionality.  By writing a new module we also get one that is multi-platform.
 
 # What about an AGM module?
 
@@ -12,11 +11,12 @@ It is being created.
 
 # What versions of PowerShell will this module work with?
 
-It was written and tested for PowerShell V7.   It has been tested on Mac OS and Windows, although it should also work fine on Linux.
+It was written and tested for PowerShell V7 with Mac OS and Windows.
+Testing is planned for Linux
 
-Is is compatible with the old ActPowerCLI
+# Is is compatible with the old ActPowerCLI?
 
-It is a 100% replacement (don't have them both installed) that is intended to be 100% compatible, meaning any existing PS1 scripts that rely on ActPowerCLI should continue to work.
+It is a 100% replacement that is intended to be 100% compatible, meaning any existing PS1 scripts that rely on ActPowerCLI should continue to work.  Don't have the old (10.0.0 or 7.0.0.x versions) installed with the new 10.0.1.x version.
 
 
 
@@ -27,15 +27,18 @@ Make a directory for it:
 ``
 mkdir ~/.local/share/powershell/Modules/ActPowerCLI
 ``
+
 Copy from GitHub
 
 ``
 cp /Volumes/GoogleDrive/Shared\ drives/SA\ Team\ Drive/Powershell/ActPowerCLI/Act* ~/.local/share/powershell/Modules/ActPowerCLI/.
 ``
+
 Start PowerShell:
 ``
 pwsh
 ``
+
 Connect (the module should auto import)
 ``
 Connect-Act 172.24.1.180
@@ -50,6 +53,22 @@ Right now it supports all udsinfo, udstask, usvcinfo and usvctask and report (SA
 ## API Limit
 
 The old module has no API limit which means if you run 'udsinfo lsjobhistory' you can easily get results in the thousands or millions.   So we added a new command to prevent giant lookups by setting a limit on the number of returned objects, although by default this limit is off.  You can set the limit with:   Set-ActAPILimit
+
+In the example below, we login and search for snapshot jobs and find there are over sixty thousand.  A smart move would be to use more filters (such as date or appname), but we could also limit the number of results using an APIlimit, so we set it to 100 and only get 100 jobs back:
+
+```
+PS /Users/anthony/git/ActPowerCLI> Connect-Act 172.24.1.180 av -passwordfile avpass.key -ignorecerts
+Login Successful!
+PS /Users/anthony/git/ActPowerCLI> $jobs = udsinfo lsjobhistory -filtervalue jobclass=snapshot
+PS /Users/anthony/git/ActPowerCLI> $jobs.jobname.count
+60231
+PS /Users/anthony/git/ActPowerCLI> Set-ActAPILimit 100
+PS /Users/anthony/git/ActPowerCLI> $jobs = udsinfo lsjobhistory -filtervalue jobclass=snapshot
+PS /Users/anthony/git/ActPowerCLI> $jobs.jobname.count
+100
+```
+
+You can reset the limit to 'unlimited' by setting it to '0'.
 
 ## Out-GridView for Mac
 
@@ -67,7 +86,7 @@ Major  Minor  Build  Revision
 
 ## What about help?
 
-The old version has offline help files.   The current version gets all help on-line.   SARG commands will be able to get online help from Appliance release 10.0.1.   The usvc commands have limited help at this time  
+The old version has offline help files.   The current version gets all help on-line.   Report commands will be able to get online help from Appliance release 10.0.1.   The usvc commands have limited help at this time.
 
 ## What about Self Signed Certs?
 
