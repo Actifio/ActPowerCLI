@@ -98,3 +98,16 @@ The old version had the ability to import SSL Certs.   The method used doesn't w
 ## Saved passwords on non Windows
 
 The Save-ActPassword cmdlet creates an encyrpted password file on Windows (just as it did before), but on Linux and Mac it only creates an encoded password file.  This is not a shortcoming with the new Module since existing function is matched but ideally we should find an encryption method for non-Windows OS.   This is a 'to-do'
+
+## Why don't the report commands auto-load ?
+
+When you first start pwsh, the ActPowerCLI module will auto-import, meaning you can run Connect-Act, udsinfo, udstask, etc.  but if you try and run a report command it cannot be found:
+
+```
+PS /Users/anthony/.local/share/powershell/Modules/ActPowerCLI> reportapps
+reportapps: The term 'reportapps' is not recognized as the name of a cmdlet, function, script file, or operable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+```
+
+You need to run Connect-Act and connect to an appliance.   When you do this, the report commands are auto generated.
+
