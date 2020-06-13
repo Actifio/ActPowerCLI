@@ -111,3 +111,25 @@ Check the spelling of the name, or if a path was included, verify that the path 
 
 You need to run Connect-Act and connect to an appliance.   When you do this, the report commands are auto generated.
 
+## Best practices with report commands
+
+When using report commands like reportapps or reportsnaps, there are many parameters you can use.   There are two important rules to follow for the best results:
+
+If a parameter uses a value, leave a space.  So if you are searching with -a for an app named smalldb or an app with ID 4771, use this syntax:
+```
+-a smalldb
+-a 4471
+```
+Don't this syntax
+```
+-asmalldb
+-a4771
+```
+Equally if you have multiple parameters, don't stack them.  So if we want to to specify -x and -y, then use this syntax:
+```
+-x -y
+```
+Don't use this syntax:
+```
+-xy
+```
