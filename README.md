@@ -30,19 +30,17 @@ mkdir ~/.local/share/powershell/Modules/ActPowerCLI
 
 Copy from GitHub
 
-``
-cp /Volumes/GoogleDrive/Shared\ drives/SA\ Team\ Drive/Powershell/ActPowerCLI/Act* ~/.local/share/powershell/Modules/ActPowerCLI/.
-``
-
 Start PowerShell:
-``
+
+```
 pwsh
-``
+```
 
 Connect (the module should auto import)
-``
+
+```
 Connect-Act 172.24.1.180
-``
+```
 
 # What else do I need to know?
 
