@@ -30,6 +30,11 @@ mkdir ~/.local/share/powershell/Modules/ActPowerCLI
 
 Copy from GitHub
 
+```
+wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 
+wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1
+```
+
 Start PowerShell:
 
 ```
