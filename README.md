@@ -120,7 +120,7 @@ If a parameter uses a value, leave a space.  So if you are searching with -a for
 -a smalldb
 -a 4471
 ```
-Don't this syntax
+Don't use this syntax
 ```
 -asmalldb
 -a4771
