@@ -11,14 +11,25 @@ It is being created.
 
 # What versions of PowerShell will this module work with?
 
-It was written and tested for PowerShell V7 with Mac OS and Windows.
-Testing is planned for Linux
+It was written and tested for PowerShell V7 with Linux, Mac OS and Windows
 
 # Is is compatible with the old ActPowerCLI?
 
 It is a 100% replacement that is intended to be 100% compatible, meaning any existing PS1 scripts that rely on ActPowerCLI should continue to work.  Don't have the old (10.0.0 or 7.0.0.x versions) installed with the new 10.0.1.x version.
 
 
+## Linux example installation
+
+Simple Linux install example:
+
+```
+mkdir /opt/microsoft/powershell/7/Modules/ActPowerCLI
+cd /opt/microsoft/powershell/7/Modules/ActPowerCLI
+wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1
+wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1
+pwsh
+Connect-Act 172.24.1.180
+```
 
 ## Mac OS Install directions
 
