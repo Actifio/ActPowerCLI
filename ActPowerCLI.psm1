@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.11'
+# ModuleVersion = '10.0.1.12'
 
 <#
 .SYNOPSIS
@@ -515,7 +515,7 @@ Example: getgcschedule -type gc
 #>
 # this function will imitate udsinfo so that users don't need to remember each individual cmdlet
 # handle request for udsinfo command
-Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
+Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
 {
     # make sure we have something to connect to
     Test-ActConnection
@@ -525,7 +525,6 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
         $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
         Get-ActAPIData  $Url
     }
-    
    if ( $help )
 	{
 		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
@@ -538,8 +537,8 @@ Function udsinfo([string]$subcommand, [string]$argument, [string]$filtervalue, [
             $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"   
             Get-ActAPIData  $Url
         }		
+        return
     } 
-  
     # we are going to send all the args that is not the argument or filtervalue in REST format as udsopts
     $udsopts = $null
     if ($args) 
@@ -689,7 +688,7 @@ Example: setparameter -param systemlocation -value Chicago
 # this function will imitate udstask so that users don't need to remember each
 # individual cmdlet.
 
-Function udstask ([string]$subcommand, [switch][alias("h")]$help) 
+Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$help) 
 {
     # make sure we have something to connect to
     Test-ActConnection
@@ -715,62 +714,44 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
 		}
 		return;
     }
+
     # if we got to here we are going to try a udstask command
+    $udsopts = $null
     if ($args) 
     {
-        # we are going to send all the UDS command opts in REST format as udsopts
-        $udsopts = $null
-        $taskparms = "$args"
+        $taskparms = " " + "$args"
         $parmcount = $taskparms | measure-object -word
-        # if we got a single item this is the object.  
-        if ( $parmcount.words -eq 1)
+        $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
+        foreach ($line in $dashsep) 
         {
-            $udsopts = "&argument=" + $taskparms
-            $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
-            Get-ActAPIDataPost  $Url
-        }
-        else
-        #  we got more than one word
-        # we will split on dashes.   We pop a space in first of the first parm so we split on " -"  This should handle dashes in variables
-        # ch commands have a value at the very end that is the ID we are working on,  all other commands dont have this quirk
-        {
-            if ( $subcommand.Substring(0, 2) -eq "ch" )
-            { 
-                $chobject = $taskparms.Split([Environment]::Space) | Select -Last 1
-                $chparmcount = $taskparms | measure-object -word
-                $parmcountwewant = $chparmcount.words -1
-                $taskparms = $taskparms.Split([Environment]::Space) | Select -first $parmcountwewant
-            }
-            $taskparms = " " + $taskparms
-            $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
-            foreach ($line in $dashsep) 
+            # remove any whitespace at the end
+            $trimm = $line.TrimEnd()
+            # is there one word here or two?  If one word we have a single word parameter
+            $innerparmcount = $trimm | measure-object -word
+            if ( $innerparmcount.words -eq 1)
             {
-                # remove any whitespace at the end
-                $trimm = $line.TrimEnd()
-                # is there on word here or two?  If one word we have a single word parameter
-                $innerparmcount = $trimm | measure-object -word
-                if ( $innerparmcount.words -eq 1)
-                {
-                    $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-                }
-                else
-                {
-                    $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                    $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-                }
+                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
             }
-            if ( $subcommand.Substring(0, 2) -eq "ch" )
+            else
             {
-                $udsopts = $udsopts + "&argument=" + "$chobject"
+                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
+                $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
             }
-            $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
-            Get-ActAPIDataPost $Url
         }
     }
+    if ($argument)
+    {
+        $udsopts =  $udsopts + "&argument=" + "$argument"
+    }
+    if ($udsopts) 
+    {
+        $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+        Get-ActAPIDataPost  $Url
+    }
     else
-    # a udstask command with args is going to fail, but we will let the appliance generate the error and print it nicely
+    # a udstask command without argument or args is likely to fail, but let the appliance do the talking
     {
         $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID"
         Get-ActAPIDataPost $Url
@@ -889,16 +870,53 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
         Write-Host "Please supply a command such as lsvdisk or lsmdisk"
         return
     }
-
-    if ($argument -and $filtervalue)
+    # if we got to here we are going to try a udsinfo command
+    $udsopts = $null
+    if ($args) 
+    {
+        $taskparms = " " + "$args"
+        $parmcount = $taskparms | measure-object -word
+        $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
+        foreach ($line in $dashsep) 
+        {
+            # remove any whitespace at the end
+            $trimm = $line.TrimEnd()
+            # is there one word here or two?  If one word we have a single word parameter
+            $innerparmcount = $trimm | measure-object -word
+            if  ( $innerparmcount.words -eq 1) 
+            {
+                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
+            }
+            else
+            {
+                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
+                if ($firstword -eq "bytes")
+                {
+                    $udsopts =  $udsopts + "&" + "bytes=true" + "&argument=" + "$secondword"
+                }
+                else 
+                {
+                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
+                }
+            }
+        }
+    }
+    if ($argument)
+    {
+        $udsopts =  $udsopts + "&argument=" + "$argument"
+    }
+    # we proceed to try and run the command
+    if ($udsopts -and $filtervalue)
     {
         $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&argument=" + "$argument" 
+        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "$udsopts" 
         Get-ActAPIData  $Url
     }
-    elseif ($argument)
+    elseif ($udsopts)
     {
-        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&argument=" + "$argument" 
+        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts" 
         Get-ActAPIData  $Url
     }
     elseif ($filtervalue)
@@ -926,9 +944,8 @@ Proceed with caution.
 
 #>
 # this command will allow users to run specific usvctask commands.
-Function usvctask([string]$subcommand)
+Function usvctask([string]$subcommand, [string]$argument)
 {
-	 # no help is available for this command
     # make sure we have something to connect to
     Test-ActConnection
     # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
@@ -948,59 +965,41 @@ Function usvctask([string]$subcommand)
         Write-Host "Please supply a command such as detectmdisk"
         return
     }
-    # if we got to here we are going to try a usvctask command
-    if ($args) 
-    {
-        # we are going to send all the usvctask command opts in REST format as udsopts
-        $udsopts = $null
-        $taskparms = "$args"
-        $parmcount = $taskparms | measure-object -word
-        # if we got a single item this is the object.  Sometimes this works
-        if ( $parmcount.words -eq 1)
-        {
-            $udsopts = "&argument=" + $taskparms
-            $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
-            Get-ActAPIDataPost  $Url
-        }
-        else
-        #  we got more than one word
-        # we will split on dashes.   We pop a space in first of the first parm so we split on " -"  This should handle dashes in variables
-        # ch commands have a value at the very end that is the ID we are working on,  all other commands dont have this quirk
-        {
-            if ( $subcommand.Substring(0, 2) -eq "ch" )
-            { 
-                $chobject = $taskparms.Split([Environment]::Space) | Select -Last 1
-                $chparmcount = $taskparms | measure-object -word
-                $parmcountwewant = $chparmcount.words -1
-                $taskparms = $taskparms.Split([Environment]::Space) | Select -first $parmcountwewant
-            }
-            $taskparms = " " + $taskparms
-            $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
-            foreach ($line in $dashsep) 
-            {
-                # remove any whitespace at the end
-                $trimm = $line.TrimEnd()
-                # is there on word here or two?  If one word we have a single word parameter
-                $innerparmcount = $trimm | measure-object -word
-                if ( $innerparmcount.words -eq 1)
-                {
-                    $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-                }
-                else
-                {
-                    $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                    $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-                }
-            }
-            if ( $subcommand.Substring(0, 2) -eq "ch" )
-            {
-                $udsopts = $udsopts + "&argument=" + "$chobject"
-            }
-            $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
-            Get-ActAPIDataPost $Url
-        }
+     # if we got to here we are going to try a usvctask command
+     $udsopts = $null
+     if ($args) 
+     {
+         $taskparms = " " + "$args"
+         $parmcount = $taskparms | measure-object -word
+         $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
+         foreach ($line in $dashsep) 
+         {
+             # remove any whitespace at the end
+             $trimm = $line.TrimEnd()
+             # is there one word here or two?  If one word we have a single word parameter
+             $innerparmcount = $trimm | measure-object -word
+             if ( $innerparmcount.words -eq 1)
+             {
+                 $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
+             }
+             else
+             {
+                 $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                 $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
+                 $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                 $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
+             }
+         }
+     }
+     if ($argument)
+     {
+         $udsopts =  $udsopts + "&argument=" + "$argument"
+     }
+
+     if ($udsopts)
+     {
+        $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+         Get-ActAPIDataPost $Url
     }
     else
     # run the command without args.  Most commands require an arg, but the appliance will let the user know
