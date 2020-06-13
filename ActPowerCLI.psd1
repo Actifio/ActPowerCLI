@@ -30,7 +30,7 @@ CompanyName = 'Actifio'
 Copyright = '(c) 2020 Actifio, Inc. All rights reserved'
 
 # Description of the functionality provided by this module
-Description = 'This is a community generated powershell module that can replace ActPowerCLI'
+Description = 'This is a community generated powershell module that can replace the previous Windows only ActPowerCLI'
 
 # Minimum version of the PowerShell engine required by this module
 PowerShellVersion = '7.0'
