@@ -20,47 +20,30 @@ It is a 100% replacement that is intended to be 100% compatible, meaning any exi
 
 ## Linux OS Install directions
 
-Simple Linux install example:
+Presuming you are happy to place into the example folder, these instructions can be followed.   We create a folder for the module and then download the files into that folder.   The module should auto load:
 
 ```
 mkdir /opt/microsoft/powershell/7/Modules/ActPowerCLI
 cd /opt/microsoft/powershell/7/Modules/ActPowerCLI
-wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1
-wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1
-pwsh
-Connect-Act 172.24.1.180
+Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
+Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1                  
+Connect-Act 
 ```
 
 ## Mac OS Install directions
 
-Make a directory for it:
-
-``
+Presuming you are happy to place into the example folder, these instructions can be followed.   We create a folder for the module and then download the files into that folder.   The module should auto load:
+```
 mkdir ~/.local/share/powershell/Modules/ActPowerCLI
-``
-
-Copy from GitHub
-
-```
-wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 
-wget --no-check-certificate https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1
-```
-
-Start PowerShell:
-
-```
-pwsh
-```
-
-Connect (the module should auto import)
-
-```
-Connect-Act 172.24.1.180
+cd ~/.local/share/powershell/Modules/ActPowerCLI
+Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
+Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1                  
+Connect-Act 
 ```
 
 ## Windows OS Install directions
 
-This is done from PWSH itself:
+Presuming you are happy to place into the example folder, these instructions can be followed.   We create a folder for the module and then download the files into that folder.   The module should auto load:
 
 ```
 pwsh
@@ -68,13 +51,7 @@ mkdir "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
 cd "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1
-exit
-```
-
-Now start a new pwsh session and begin issuing commands
-```
-pwsh
-Connect-Act 172.24.1.180 av -ignorecerts
+Connect-Act 
 ```
 
 # What else do I need to know?
