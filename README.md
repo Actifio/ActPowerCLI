@@ -18,7 +18,7 @@ It was written and tested for PowerShell V7 with Linux, Mac OS and Windows
 It is a 100% replacement that is intended to be 100% compatible, meaning any existing PS1 scripts that rely on ActPowerCLI should continue to work.  Don't have the old (10.0.0 or 7.0.0.x versions) installed with the new 10.0.1.x version.
 
 
-## Linux example installation
+## Linux OS Install directions
 
 Simple Linux install example:
 
@@ -56,6 +56,25 @@ Connect (the module should auto import)
 
 ```
 Connect-Act 172.24.1.180
+```
+
+## Windows OS Install directions
+
+This is done from PWSH itself:
+
+```
+pwsh
+mkdir "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
+cd "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1
+exit
+```
+
+Now start a new pwsh session and begin issuing commands
+```
+pwsh
+Connect-Act 172.24.1.180 av -ignorecerts
 ```
 
 # What else do I need to know?
