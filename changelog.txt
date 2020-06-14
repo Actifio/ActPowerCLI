@@ -1,6 +1,8 @@
 # Changelog
 All notable changes to ActPowerCLI will be documented in this file
 
+## [10.0.1.14] 2020-06-14
+Stop exporting private functions
 
 ## [10.0.1.13] 2020-06-14
 Added missing cmdlets: Get-Priviledges, Get-LastSnap, Get-ActAppID  as functions
