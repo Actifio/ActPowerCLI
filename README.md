@@ -28,9 +28,10 @@ Find out where we should place the ActPowerCLI PowerShell module in the environm
 Get-ChildItem Env:\PSModulePath | format-list
 ```
 
-### 2)    Install ActPowerCLI
+### 2)    Install or Upgrade ActPowerCLI
 
-The commands are basically the same for each OS:
+The commands are basically the same for each OS.
+To upgrade simpley run the two Invoke-WebRequest commands.  If you get permission denied, delete the old files first.
 
 #### Linux OS Install directions
 
