@@ -95,7 +95,7 @@ If you need some examples on the command:
 Get-Help Connect-Act -examples
 ```
 
-Note the original Windows only version has offline help files.   The PowerShell V7 version gets all help on-line.   Report commands will be able to get online help from Appliance release 10.0.1.   The usvc commands have limited help at this time.
+Note the original Windows only version has offline help files.   The PowerShell V7 version gets all help on-line.   Report commands will be able to get online help from Appliance release 10.1.0   The usvc commands have limited help at this time.
 
 ### 4)  Save your password
 
