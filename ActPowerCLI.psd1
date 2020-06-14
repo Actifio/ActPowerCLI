@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.12'
+ModuleVersion = '10.0.1.13'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -30,7 +30,7 @@ CompanyName = 'Actifio'
 Copyright = '(c) 2020 Actifio, Inc. All rights reserved'
 
 # Description of the functionality provided by this module
-Description = 'This is a community generated powershell module that can replace the previous Windows only ActPowerCLI'
+Description = 'This is a community generated powershell module that can replace ActPowerCLI'
 
 # Minimum version of the PowerShell engine required by this module
 PowerShellVersion = '7.0'
@@ -69,7 +69,7 @@ PowerShellVersion = '7.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Get-SARGReport','New-SARGCmdlets','Set-ActAPILimit','Test-ActConnection','Test-ActJSON','Get-ActAPIData','ActAPIDataPost')
+FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Get-SARGReport','New-SARGCmdlets','Set-ActAPILimit','Test-ActConnection','Test-ActJSON','Get-ActAPIData','ActAPIDataPost','Get-Privileges','Get-ActAppID','Get-LastSnap')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'

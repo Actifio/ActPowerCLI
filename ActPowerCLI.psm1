@@ -1,70 +1,70 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.12'
+# ModuleVersion = '10.0.1.13'
 
-<#
-.SYNOPSIS
-Login to a VDP appliance.
-
-.EXAMPLE
-connect-act -acthost 10.65.5.35 -actuser admin -passwordfile pass.key
-Using a password file to login. Path to password file can be absolute or relative path.
-
-.EXAMPLE
-connect-act -acthost 10.65.5.35 -actuser admin -password Password123
-Example using the password on the command line itself to login.
-
-.EXAMPLE
-connect-act 10.65.5.35 admin -ignorecerts
-Example where certificate checking is disabled.
-
-
-.DESCRIPTION
-Connect to VDP Appliance using a username and password or by specifying -passwordfile
-which will use stored credentials.
-
-If no password is provided and no passwordfile flag is set, then the cmdlet will
- prompt for a password
-
-Using -quiet suppresses all successful messages
-
-SSL Certificate checking is performed during Connect-Act
-To always accept and skip the check use -ignorecerts
-
-
-.PARAMETER acthost
-Required. Hostname or IP to connect to.ACTPRIVILEGES
-
-.PARAMETER actuser
-Required. Username to connect to VDP as. Same username that is used in the 
-Actifio Desktop login screen.
-
-.PARAMETER password
-Optional. If not provided, a prompt will be presented. If provided, it can be provided
-as clear text.
-
-example: connect-act -acthost 10.65.5.35 -actuser admin -password Password123
-
-.PARAMETER passwordfile
-Optional. This is a string that instructs Connect-Act to use stored credentials as 
-opposed to interactive login. In order to use -passwordfile, you must use 
-save-actpassword first to save the password.
-
-example: connect-act -acthost 10.65.5.35 -actuser admin -passwordfile pass.key
-example: connect-act 10.65.5.35 admin -passwordfile .\pass.key
-example: connect-act 10.65.5.35 admin -passwordfile pass.key
-
-
-The password file can be a relative path or a fully qualified path to the file
-
-.PARAMETER quiet
-Optional. Suppresses all success messages. Use this in scripting when you
-don't want to see a successful login message. To validate the connection, check
-for variable $ACTSESSIONID
-
-
-#>
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
+    <#
+    .SYNOPSIS
+    Login to a VDP appliance.
+
+    .EXAMPLE
+    connect-act -acthost 10.65.5.35 -actuser admin -passwordfile pass.key
+    Using a password file to login. Path to password file can be absolute or relative path.
+
+    .EXAMPLE
+    connect-act -acthost 10.65.5.35 -actuser admin -password Password123
+    Example using the password on the command line itself to login.
+
+    .EXAMPLE
+    connect-act 10.65.5.35 admin -ignorecerts
+    Example where certificate checking is disabled.
+
+
+    .DESCRIPTION
+    Connect to VDP Appliance using a username and password or by specifying -passwordfile
+    which will use stored credentials.
+
+    If no password is provided and no passwordfile flag is set, then the cmdlet will
+    prompt for a password
+
+    Using -quiet suppresses all successful messages
+
+    SSL Certificate checking is performed during Connect-Act
+    To always accept and skip the check use -ignorecerts
+
+
+    .PARAMETER acthost
+    Required. Hostname or IP to connect to.ACTPRIVILEGES
+
+    .PARAMETER actuser
+    Required. Username to connect to VDP as. Same username that is used in the 
+    Actifio Desktop login screen.
+
+    .PARAMETER password
+    Optional. If not provided, a prompt will be presented. If provided, it can be provided
+    as clear text.
+
+    example: connect-act -acthost 10.65.5.35 -actuser admin -password Password123
+
+    .PARAMETER passwordfile
+    Optional. This is a string that instructs Connect-Act to use stored credentials as 
+    opposed to interactive login. In order to use -passwordfile, you must use 
+    save-actpassword first to save the password.
+
+    example: connect-act -acthost 10.65.5.35 -actuser admin -passwordfile pass.key
+    example: connect-act 10.65.5.35 admin -passwordfile .\pass.key
+    example: connect-act 10.65.5.35 admin -passwordfile pass.key
+
+
+    The password file can be a relative path or a fully qualified path to the file
+
+    .PARAMETER quiet
+    Optional. Suppresses all success messages. Use this in scripting when you
+    don't want to see a successful login message. To validate the connection, check
+    for variable $ACTSESSIONID
+    #>
+
+
     # max objects returned will be unlimited.   Otherwise user can supply a limit
     if (!($actmaxapilimit))
     {
@@ -217,6 +217,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     else
     {
+        $global:ACTPRIVILEGES = $resp.rights
         $global:ACTSESSIONID = $resp.sessionid
         $global:acthost = $acthost
         if ($quiet)
@@ -268,21 +269,23 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
 } 
 
-<#
-.SYNOPSIS
-Disconnect and end the session with the VDP Appliance.
 
-.EXAMPLE
-Disconnect-Act
-
-.DESCRIPTION
-Disconnect from the VDP appliance and end the session nicely.
-
-#>
 # this function disconnects from the VDP Appliance
 function Disconnect-Act([switch][alias("q")]$quiet)
 {   
-    # make sure we have something to disconnect from
+    <#
+    .SYNOPSIS
+    Disconnect and end the session with the VDP Appliance.
+
+    .EXAMPLE
+    Disconnect-Act
+
+    .DESCRIPTION
+    Disconnect from the VDP appliance and end the session nicely.
+
+    #>
+ 
+
     Test-ActConnection
     # disconnect
     $Url = "https://$acthost/actifio/api/logout" + "?&sessionid=$ACTSESSIONID"
@@ -320,27 +323,35 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     }
 }
 
-<#
-.SYNOPSIS
-Executes SARG commands via a rest API hosted on a VDP Appliance.
 
-.EXAMPLE
-Get-SARGReport reportlist
-List out the possible reports available.
-
-.EXAMPLE
-Get-SARGReport reportimages -a 123456
-Runs reportimages report for the appid 123456
-
-.DESCRIPTION
-The majority of report commands that are available in a VDP Appliance are available via ActPowerCLI module.
-
-#>
 # Get-SARGReport function
 function Get-SARGReport([string]$reportname,[String]$sargparms)
 {
+    <#
+    .SYNOPSIS
+    Executes SARG commands via a rest API hosted on a VDP Appliance.
+
+    .EXAMPLE
+    Get-SARGReport reportlist
+    List out the possible reports available.
+
+    .EXAMPLE
+    Get-SARGReport reportimages -a 123456
+    Runs reportimages report for the appid 123456
+
+    .DESCRIPTION
+    The majority of report commands that are available in a VDP Appliance are available via ActPowerCLI module.
+
+    #>
+
+
     # make sure we have something to connect to
     Test-ActConnection
+
+    if (!($reportname))
+    {
+        return;
+    }
 
     if ($sargparms) 
 	{
@@ -410,6 +421,12 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
 # create the functions so that report* commands work like they do with SSH CLI
 function New-SARGCmdlets()
 {
+    <#
+    .SYNOPSIS
+    This is an internal function used to fetch report commands from the appliance.  You do not use this function directly
+    #>
+
+
     # make sure we have something to connect to
     Test-ActConnection
     $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
@@ -447,76 +464,75 @@ function New-SARGCmdlets()
 }
 
 
-
-
-<#
-.SYNOPSIS
-Executes udsinfo commands via a rest API hosted on VDP Appliance.
-
-.EXAMPLE
-udsinfo lsuser
-list users on connect VDP appliance.
-
-.EXAMPLE
-udsinfo lsapplication 12345
-List details about application id 12345
-
-.EXAMPLE
-udsinfo lsapplication -filtervalue appname=*db*
-List any applications that contain "db" in the name
-
-.EXAMPLE
-udsinfo lsapplication -filtervalue "appname=*db*&hostid=333620"
-List any applications that contain "db" in the appname and are a match 
-for hostid 333620. The filtervalue here needs to be quoted because & is 
-a reserved special character in Powershell. 
-
-.EXAMPLE
-udsinfo -h
-See all the available subcommands to udsinfo
-
-.EXAMPLE
-udsinfo lsapplication -h
-See the help information for lsapplication subcommand.
-
-.DESCRIPTION
-Once you have connected to a VDP Appliance using Connect-Act, you can execute 
-udsinfo with a subcommand to return information from a VDP Appliance . Udsinfo commands
-allow you to retrieve information and settings from a VDP Appliance. These commands can be
-safely executed without any danger to the system.
-
-
-use udsinfo -h to get the list of possible subcommands.
-
-udsinfo SUBCOMMAND -h will provide help on that specific topic.
-
-Help is retrieved dynamically from a VDP Appliance .
-
-.PARAMETER subcommand
-Required. Subcommand to udsinfo. Example: lshost, lsuser, lsapplication.
-
-.PARAMETER argument
-Optional. Use argument to get more information about a specific object. 
-Example: lshost sql01 or lshost 2342
-
-.PARAMETER filtervalue
-Optional. Can be used to filter the information received from a VDP Appliance. 
-Filtervalue is ignored when argument is provided.
-
-Example: lshost -filtervalue hostanme=exch*
-
-.PARAMETER help
-Optional. Use this for getting subcommand help. Needs no value. 
-Example: lshost -h
-
-.PARAMETER args
-Arguments to be provided to the function that do not meet the requirements above. 
-Example: getgcschedule -type gc
-#>
 # this function will imitate udsinfo so that users don't need to remember each individual cmdlet
 # handle request for udsinfo command
 Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
 {
+    <#
+    .SYNOPSIS
+    Executes udsinfo commands via a rest API hosted on VDP Appliance.
+
+    .EXAMPLE
+    udsinfo lsuser
+    list users on connect VDP appliance.
+
+    .EXAMPLE
+    udsinfo lsapplication 12345
+    List details about application id 12345
+
+    .EXAMPLE
+    udsinfo lsapplication -filtervalue appname=*db*
+    List any applications that contain "db" in the name
+
+    .EXAMPLE
+    udsinfo lsapplication -filtervalue "appname=*db*&hostid=333620"
+    List any applications that contain "db" in the appname and are a match 
+    for hostid 333620. The filtervalue here needs to be quoted because & is 
+    a reserved special character in Powershell. 
+
+    .EXAMPLE
+    udsinfo -h
+    See all the available subcommands to udsinfo
+
+    .EXAMPLE
+    udsinfo lsapplication -h
+    See the help information for lsapplication subcommand.
+
+    .DESCRIPTION
+    Once you have connected to a VDP Appliance using Connect-Act, you can execute 
+    udsinfo with a subcommand to return information from a VDP Appliance . Udsinfo commands
+    allow you to retrieve information and settings from a VDP Appliance. These commands can be
+    safely executed without any danger to the system.
+
+
+    use udsinfo -h to get the list of possible subcommands.
+
+    udsinfo SUBCOMMAND -h will provide help on that specific topic.
+
+    Help is retrieved dynamically from a VDP Appliance .
+
+    .PARAMETER subcommand
+    Required. Subcommand to udsinfo. Example: lshost, lsuser, lsapplication.
+
+    .PARAMETER argument
+    Optional. Use argument to get more information about a specific object. 
+    Example: lshost sql01 or lshost 2342
+
+    .PARAMETER filtervalue
+    Optional. Can be used to filter the information received from a VDP Appliance. 
+    Filtervalue is ignored when argument is provided.
+
+    Example: lshost -filtervalue hostanme=exch*
+
+    .PARAMETER help
+    Optional. Use this for getting subcommand help. Needs no value. 
+    Example: lshost -h
+
+    .PARAMETER args
+    Arguments to be provided to the function that do not meet the requirements above. 
+    Example: getgcschedule -type gc
+    #>
+
     # make sure we have something to connect to
     Test-ActConnection
 	# if no subcommand is provided, display the list of subcommands and exit
@@ -640,56 +656,58 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
     } while ($done -eq 0)
 }
 
-<#
-.SYNOPSIS
-Executes udstask commands via a rest API hosted on a VDP Appliance. 
 
-.EXAMPLE
-udstask mkuser -h
-See help for the mkuser subcommand. 
-
-.EXAMPLE
-udstask mkuser -name john.doe -password Password12345
-Create a new user named "john.doe" with a password. Additional optional fields can be specified as well. See help.
-
-.EXAMPLE
-udstask backup -app 4222 -policy 4111
-Run an on demand backup job for app id 4222 with policy 4111.
-
-.EXAMPLE
-udstask -h
-See all the available subcommands to udstask
-
-.DESCRIPTION
-Once you have connected to a VDP Appliance using Connect-Act, you can execute 
-udstask with a subcommand to make changes on a VDP Appliance. Udstask commands conduct
-actions on an VDP Appliance. Actions such as creation of hosts, users, running
-jobs, etc.
-
-Output from CDS Is always presented as an object.
-
-use udstask -h to get the list of possible subcommands.
-
-udstask SUBCOMMAND -h will provide help on that specific topic.
-
-Help is retrieved dynamically from a VDP Appliance.
-
-.PARAMETER subcommand
-Required. Subcommand to udstask. Example: mkhost, mkuser, mksla.
-
-.PARAMETER help
-Optional. Use this for getting subcommand help. Needs no value. 
-Example: mkuser -h
-
-.PARAMETER args
-Arguments to be provided to the function that do not meet the requirements above. 
-Example: setparameter -param systemlocation -value Chicago
-#>
-# this function will imitate udstask so that users don't need to remember each
-# individual cmdlet.
 
 Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$help) 
 {
+    <#
+    .SYNOPSIS
+    Executes udstask commands via a rest API hosted on a VDP Appliance. 
+
+    .EXAMPLE
+    udstask mkuser -h
+    See help for the mkuser subcommand. 
+
+    .EXAMPLE
+    udstask mkuser -name john.doe -password Password12345
+    Create a new user named "john.doe" with a password. Additional optional fields can be specified as well. See help.
+
+    .EXAMPLE
+    udstask backup -app 4222 -policy 4111
+    Run an on demand backup job for app id 4222 with policy 4111.
+
+    .EXAMPLE
+    udstask -h
+    See all the available subcommands to udstask
+
+    .DESCRIPTION
+    Once you have connected to a VDP Appliance using Connect-Act, you can execute 
+    udstask with a subcommand to make changes on a VDP Appliance. Udstask commands conduct
+    actions on an VDP Appliance. Actions such as creation of hosts, users, running
+    jobs, etc.
+
+    Output from CDS Is always presented as an object.
+
+    use udstask -h to get the list of possible subcommands.
+
+    udstask SUBCOMMAND -h will provide help on that specific topic.
+
+    Help is retrieved dynamically from a VDP Appliance.
+
+    .PARAMETER subcommand
+    Required. Subcommand to udstask. Example: mkhost, mkuser, mksla.
+
+    .PARAMETER help
+    Optional. Use this for getting subcommand help. Needs no value. 
+    Example: mkuser -h
+
+    .PARAMETER args
+    Arguments to be provided to the function that do not meet the requirements above. 
+    Example: setparameter -param systemlocation -value Chicago
+    #>
+
+    # this function will imitate udstask so that users don't need to remember each
+    # individual function.
     # make sure we have something to connect to
     Test-ActConnection
     # if no subcommand is provided, get the list of udstask commands and exit.
@@ -758,32 +776,34 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     }   
 }
 
-<#
-.SYNOPSIS
-Save credentials so that scripting is easy and interactive login is no longer 
-needed.
 
-.EXAMPLE
-Save-ActPassword -filename ./5b-admin-pass
-Save the password for use later.
-
-.DESCRIPTION
-Store the credentials in a file which can be used to login to VDP Appliance.
-
-Providing a acthost and a cdsuser will prompt for a password which will then be 
-stored in the file location provided.
-
-To change the credentials, simply re-run the cmdlet.
-
-.PARAMETER filename
-Required. Absolute or relative location where the file should be saved. 
-example: .\actpass
-example: C:\Users\admin\actpass
-
-#>
 # this function will save a VDP password so that ActPowerCLI can be used in scripts.
 Function Save-ActPassword([string]$filename)
 {
+    <#
+    .SYNOPSIS
+    Save credentials so that scripting is easy and interactive login is no longer 
+    needed.
+
+    .EXAMPLE
+    Save-ActPassword -filename ./5b-admin-pass
+    Save the password for use later.
+
+    .DESCRIPTION
+    Store the credentials in a file which can be used to login to VDP Appliance.
+
+    Providing a acthost and a cdsuser will prompt for a password which will then be 
+    stored in the file location provided.
+
+    To change the credentials, simply re-run the cmdlet.
+
+    .PARAMETER filename
+    Required. Absolute or relative location where the file should be saved. 
+    example: .\actpass
+    example: C:\Users\admin\actpass
+
+    #>
+
 	# if no file is provided, prompt for one
 	if (!($filename))
 	{
@@ -816,6 +836,12 @@ Function Save-ActPassword([string]$filename)
 # this function prevents errors trying to  run commands without these variables set.
 Function Test-ActConnection
 {
+    <#
+    .SYNOPSIS
+    This is an internal function used to test if parms exist to connect to an appliance.  You do not use this function directly
+    #>
+
+
     if ( (!($ACTSESSIONID)) -or (!($acthost)) )
     {
         Write-host ""
@@ -827,29 +853,28 @@ Function Test-ActConnection
     }
 }
 
-
-
-
-<#
-.SYNOPSIS
-Executes usvcinfo commands via a rest API hosted on CDS only. Usvcinfo is not supported on a Virtual Appliance.
-
-.EXAMPLE
-usvcinfo lsvdisk 1
-List details about vdisk id 1
-
-.EXAMPLE
-usvcinfo lsmdisk
-List out all the mdisks on a CDS appliance.
-
-.DESCRIPTION
-Usvcinfo commands are like udsinfo commands. They provide a view into settings and the current state
-of an Actifio CDS appliance. Usvcinfo commands do not change any settings or perform any actions.
-
-#>
-# function to imitate usvcinfo so that users don't need to remember each individual cmdlet
+ # function to imitate usvcinfo so that users don't need to remember each individual cmdlet
 Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
 {
+    <#
+    .SYNOPSIS
+    Executes usvcinfo commands via a rest API hosted on CDS only. Usvcinfo is not supported on a Virtual Appliance.
+
+    .EXAMPLE
+    usvcinfo lsvdisk 1
+    List details about vdisk id 1
+
+    .EXAMPLE
+    usvcinfo lsmdisk
+    List out all the mdisks on a CDS appliance.
+
+    .DESCRIPTION
+    Usvcinfo commands are like udsinfo commands. They provide a view into settings and the current state
+    of an Actifio CDS appliance. Usvcinfo commands do not change any settings or perform any actions.
+
+    #>
+
+   
     # no help is available for this command
     # make sure we have something to connect to
     Test-ActConnection
@@ -932,20 +957,23 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
     }
 }
 
-<#
-.SYNOPSIS
-Executes usvctask commands via a rest API hosted on CDS only. Usvctask is not supported on a Virtual Appliance.
 
-.DESCRIPTION
-Usvctask commands should only be executed by an administrator who has deep
-knowledge of the CDS platform. Usvctask commands can have undesired consequences if used incorrectly.
-
-Proceed with caution.
-
-#>
-# this command will allow users to run specific usvctask commands.
 Function usvctask([string]$subcommand, [string]$argument)
 {
+    <#
+    .SYNOPSIS
+    Executes usvctask commands via a rest API hosted on CDS only. Usvctask is not supported on a Virtual Appliance.
+
+    .DESCRIPTION
+    Usvctask commands should only be executed by an administrator who has deep
+    knowledge of the CDS platform. Usvctask commands can have undesired consequences if used incorrectly.
+
+    Proceed with caution.
+
+    #>
+
+
+    # this command will allow users to run specific usvctask commands.
     # make sure we have something to connect to
     Test-ActConnection
     # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
@@ -1010,16 +1038,43 @@ Function usvctask([string]$subcommand, [string]$argument)
 }
 
 
-# offer a way to limit the maximum number of results in a single lookup
+    # offer a way to limit the maximum number of results in a single lookup
 function Set-ActAPILimit([Parameter(Mandatory = $true)]
 [ValidateRange("NonNegative")][int]$userapilimit )
 {
+    <#
+    .SYNOPSIS
+    Limits the number of objects returned by udsinfo commands.  If you set it to 1 you will only get 1 object, such as a backup or job history.
+
+    .EXAMPLE
+    Set-ActAPILimit 1
+    Sets the limit to 1
+
+    .EXAMPLE
+    Set-ActAPILimit 0
+    Resets the limit to unlimited
+
+    .DESCRIPTION
+    By default udsinfo commands will continue to fetch data, 4096 objects at a time until all objects are fetched.
+    This could take a long time for jobhistory.   Using filters is a good choice, but if you just want example output, then you can set a limit.
+    If you set it to 1 you will only get 1 object, such as a backup or job history.
+    To reset to default, set the value to 0
+
+    #>
+
+
     $global:actmaxapilimit = $userapilimit
 }
 
 # errors can either have JSON and be easy to format or can be text,  we need to sniff
 Function Test-ActJSON()
 {
+    <#
+    .SYNOPSIS
+    This is an internal function used to check output to see if it is JSON.  You do not use this function directly
+    #>
+
+
     if ($args) 
     {
         Try
@@ -1046,6 +1101,12 @@ Function Test-ActJSON()
 # this function takes the generated URL and tries to pull back the API Data
 Function Get-ActAPIData 
 {
+    <#
+    .SYNOPSIS
+    This is an internal function used to check fetch data from the appliance.  You do not use this function directly
+    #>
+    
+
     if ($args)
     {
         Try    
@@ -1077,6 +1138,12 @@ Function Get-ActAPIData
 # this function takes the generated URL and tries to pull back the API Data   It does Post rather than Get.  
 Function Get-ActAPIDataPost
 {
+    <#
+    .SYNOPSIS
+    This is an internal function used to check fetch data from the appliance.  You do not use this function directly
+    #>
+
+
     if ($args)
     {
         Try    
@@ -1102,5 +1169,153 @@ Function Get-ActAPIDataPost
         {
             $resp.result
         }
+    }
+}
+
+# offer a way to display user rights
+Function Get-Privileges
+{
+    <#
+    .SYNOPSIS
+    Displays the rights that the logged in user has
+
+    .EXAMPLE
+    Get-Privileges
+
+    .DESCRIPTION
+    This command shows all the rights that are allowed to the user who is currently logged in
+
+    #>
+
+
+    if ($ACTPRIVILEGES)
+    {
+        $privs = @()
+        $privcolumn = "" | Select Priviledges
+        foreach ($line in $ACTPRIVILEGES) {
+        $privcolumn.Priviledges = "$line"
+        $privs = $privs + $privcolumn
+        $privcolumn = "" | Select Priviledges
+        }
+    }
+    if ($privs)
+    {
+        $privs
+    }
+}
+
+# offer a way to get the AppID for an app
+Function Get-ActAppID([string]$hostname, [string]$appname) 
+{
+    <#
+    .SYNOPSIS
+    Displays the appID for an application
+
+    .EXAMPLE
+    Get-ActAppID
+    You will be prompted for hostname and appname
+
+    .EXAMPLE
+    Get-ActAppID -hostname windows -appname Windows
+    If the app is found you will get the ID returned
+
+    .DESCRIPTION
+    A function to find the App ID of an app based on supplied hostname and appname
+    Both fields are case sensitive and no wildcards are allowed.
+
+    #>
+
+
+    if (!($hostname))
+    {
+        $hostname = Read-Host "hostname"
+    }
+    if (!($appname))
+    {
+        $appname = Read-Host "appname"
+    }
+    if (($appname -match '\*') -or ($hostname -match '\*'))
+    {
+        Write-Host "Wildcards are not allowed for this Function"
+        return;
+    }
+    $returnedapp = udsinfo lsapplication -filtervalue "appname=$appname&hostname=$hostname"
+    if ($returnedapp.id)
+    {
+        $returnedapp | select id
+    }
+    else
+    {
+        $returnedapp
+    }
+}
+
+Function Get-LastSnap([string]$app, [string]$jobclass, [int]$backupinlast) 
+{
+    <#
+    .SYNOPSIS
+    Displays the most recent image for an app
+
+    .EXAMPLE
+    Get-LastSnap
+    You will be prompted for appname
+
+    .EXAMPLE
+    Get-LastSnap -app Windows
+    Get the last image created for the app named Windows
+
+    .EXAMPLE
+    Get-LastSnap -app 4771
+    Get the last image created for the app with ID 4771
+
+    .EXAMPLE
+    Get-LastSnap -app Windows -jobclass snapshot
+    Get the last snapshot created for the app named Windows
+
+    .EXAMPLE
+    Get-LastSnap -app Windows -jobclass snapshot -backupinlast 24
+    Get the last snapshot created for the app named Windows but only if the backup date is in the last 24 hours
+
+    .DESCRIPTION
+    A function to find the last image created for an app
+    Despite the function name, it will return the last image regardless of class.   If you want snapshots, use -jobclass snapshot
+    App field can be a name or an ID.   Wild cards are not allowed and case is sensitive.
+
+    #>
+
+
+    if (!($app))
+    {
+        $app = Read-Host "app"
+    }
+    if (($app -match '\*') -or ($jobclass -match '\*'))
+    {
+        Write-Host "Wildcards are not allowed for this Function"
+        return;
+    }
+    if ($app -match '^[0-9]+$')
+    {
+        $fv = "appid=$app"
+    }
+    else
+    {
+        $fv = "appname=$app"
+    }
+    if ($jobclass)
+    {
+        $fv = $fv + "&jobclass=$jobclass"
+    }
+    if (($backupinlast) -and ($backupinlast -gt 0))
+    {
+        $fv = $fv +  "&backupdate since " + $backupinlast + " hours"
+    }
+    $backups = udsinfo lsbackup -filtervalue "$fv" | Select-Object -Last 1 
+    if ($backups.id)
+    {
+        $backups | select id, appname, appid, backupname, backupdate, label, hostname, policyname, sltname, slpname, jobclass
+    }
+    else
+    {
+        $backups
     }
 }
