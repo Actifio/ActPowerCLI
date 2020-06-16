@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to ActPowerCLI will be documented in this file
 
+## [10.0.1.15] 2020-06-16
+Added helpful exit message when Get-SARGReport is run without a subcommand, rather than no message
+When Get-SARGReport is run with -h will now show reportlist output rather than no message
+Corrected issue where when Connect-Act was run with -quiet, user couldn't run any SARG reports 
+Added URL encoding to SARG payload
+Added code to support SARG help when it is supported on Appliance Side
+
 ## [10.0.1.14] 2020-06-14
 Stop exporting private functions
 
