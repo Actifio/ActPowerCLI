@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.14'
+# ModuleVersion = '10.0.1.15'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
@@ -220,15 +220,11 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         $global:ACTPRIVILEGES = $resp.rights
         $global:ACTSESSIONID = $resp.sessionid
         $global:acthost = $acthost
-        if ($quiet)
-        { 
-            return 
-        } 
-        elseif ($printsession)
+        if ($printsession)
         {
             Write-Host "$ACTSESSIONID" 
         }
-        else
+        elseif (!($quiet))
         { 
             Write-Host "Login Successful!"
         }
@@ -325,7 +321,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
 
 
 # Get-SARGReport function
-function Get-SARGReport([string]$reportname,[String]$sargparms)
+function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h")]$help)
 {
     <#
     .SYNOPSIS
@@ -348,69 +344,99 @@ function Get-SARGReport([string]$reportname,[String]$sargparms)
     # make sure we have something to connect to
     Test-ActConnection
 
-    if (!($reportname))
+    if ( (!($reportname)) -and ($help))
     {
-        return;
+        $reportname = "reportlist"
     }
 
+    if (!($reportname))
+    {
+        write-host "No reportname was provided. Please provide a reportname."
+        return;
+    }
     if ($sargparms) 
 	{
         # we are going to send all the SARG command opts in REST format as sargopts
         $sargopts = $null
         # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  We dump blank lines
-        $sargparms = " " + $sargparms 
+        $sargparms = " " + "$sargparms" 
         $dashsep = $sargparms.Split(" -") -notmatch '^\s*$'
         foreach ($line in $dashsep) 
+        {
+            # remove any whitespace at the end
+            $trimm = $line.TrimEnd()
+            # do we have a single letter.  If so this is out parm.   If the user didn't use a dash this will also work,  so -i and i both work
+            $length = $trimm.length
+            if ( $length -eq 1 )
             {
-                # remove any whitespace at the end
-                $trimm = $line.TrimEnd()
-                # do we have a single letter.  If so this is out parm.   If the user didn't use a dash this will also work,  so -i and i both work
-                $length = $trimm.length
-                if ( $length -eq 1 )
-                {
-                        $sargopts = $sargopts + "&" + "$trimm" + "=true" 
+                $sargopts = $sargopts + "&" + "$trimm" + "=true" 
+                if ($trimm -eq "h")
+                { 
+                    $helprequest = "y"
                 }
-                # if length is greater than one then we either have a parm with search  like -a 1232  or we have grouped parms like -ty
-                if ( $length -gt 1 )
-                {
-                    $parmcount = $trimm | measure-object -word
-                    # if we get one word and the first letter is a or d we are are going to assume its appID or days.   
-                    # its better for the user to always leave a space between letter and search object, so -a 123 rather than -a123  
-                    if ( $parmcount.words -eq 1 )
-                    { 
-                        if ( ($trimm[0] -eq "a") -or ($trimm[0] -eq "d") )
+            }
+            # if length is greater than one then we either have a parm with search  like -a 1232  or we have grouped parms like -ty
+            if ( $length -gt 1 )
+            {
+                $parmcount = $trimm | measure-object -word
+                # if we get one word and the first letter is a or d we are are going to assume its appID or days.   
+                # its better for the user to always leave a space between letter and search object, so -a 123 rather than -a123  
+                if ( $parmcount.words -eq 1 )
+                { 
+                    if ( ($trimm[0] -eq "a") -or ($trimm[0] -eq "d") )
+                    {
+                        $sargopts =  $sargopts + "&" + $trimm[0] + "=" + [System.Web.HttpUtility]::UrlEncode($trimm.substring(1)) 
+                    }
+                    # if we find only one word then all the parms are together like -ty so we process them one at a time
+                    else
+                    {
+                        $splitblob = $trimm.tochararray()
+                        foreach ($blob in $splitblob) 
                         {
-                            $sargopts =  $sargopts + "&" + $trimm[0] + "=" + $trimm.substring(1)
-                        }
-                        # if we find only one word then all the parms are together like -ty so we process them one at a time
-                        else
-                        {
-                            $splitblob = $trimm.tochararray()
-                            foreach ($blob in $splitblob) 
-                            {
-                                $sargopts =  $sargopts + "&" + "$blob" + "=true"
+                            $sargopts =  $sargopts + "&" + "$blob" + "=true"
+                            if ($blob -eq "h")
+                            { 
+                                $helprequest = "y"
                             }
                         }
                     }
-                    # if we have more then one word then we have a search like  -a 1234
-                    if ( $parmcount.words -gt 1 )
-                    { 
-                        # the first word will be the parm   If the first word is more than one character long then there is an issue and we ignore it
-                        $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                        $length = $firstword.length
-                        if ( $length -eq 1 )
-                        {
-                            # the second word should be the search term   Spaces are not an issue
-                            $secondword = $trimm.substring(2)
-                            $sargopts =  $sargopts + "&" + "$firstword" + "=" + "$secondword" 
-                        }
+                }
+                # if we have more then one word then we have a search like  -a 1234
+                if ( $parmcount.words -gt 1 )
+                { 
+                    # the first word will be the parm   If the first word is more than one character long then there is an issue and we ignore it
+                    $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                    $length = $firstword.length
+                    if ( $length -eq 1 )
+                    {
+                        # the second word should be the search term   Spaces are not an issue
+                        $secondword = $trimm.substring(2)
+                        $sargopts =  $sargopts + "&" + "$firstword" + "=" + [System.Web.HttpUtility]::UrlEncode($secondword) 
                     }
                 }
             }
-        $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
-        Get-ActAPIData  $Url
+        }
+        if ($helprequest -eq "y")
+        {
+            $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID" + "&h=true"
+            $helpgrab = Get-ActAPIData  $Url
+            if (!($helpgrab.information))
+            {
+                $helpgrab
+            }
+            else
+            {
+                # we will remove any options that don't apply to PowerShell  -w for column width -c for CSV -l for appname length and -n for no header
+                $helpgrab.information -notmatch ".column width to exactly match.|.comma separated variable.|.length of the app name.|.not print the header lines"
+            }
+        }
+        else
+        {
+            $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
+            Get-ActAPIData  $Url
+        }
     } 
-    else 
+    else
 	{
         $Url = "https://$acthost/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
         Get-ActAPIData  $Url
