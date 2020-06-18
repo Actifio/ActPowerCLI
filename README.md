@@ -3,7 +3,7 @@ A Powershell module for Powershell V7 that is compatible/replacement for the old
 
 ### Why write a new Module?
 
-The old module was written in C to handle Windows PowerShell not being 'REST API' friendly. It is not fully compatible with newer PowerShell versions.  PowerShell 7 needs new syntax to handle new functionality.  By writing a new module we also get one that is multi-platform.
+The old module was written in C to handle Windows PowerShell not being 'REST API' friendly, but it is not fully compatible with newer PowerShell versions.  PowerShell 7 needs new syntax to handle new functionality.  By writing a new module we also get one that is significantly smaller and multi-platform.
 
 ### What about an AGM module?
 
