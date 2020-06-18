@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to ActPowerCLI will be documented in this file
 
+## [10.0.1.17] 2020-06-19
+Because report commands do not load as functions until after Connect-Act, this causes confusion.   Added reportlist as a discreet function to give useful error message.
+
 ## [10.0.1.16] 2020-06-18
 All error messages that are locally generated will use the same format as appliance generated, making the behaviour more consistent and scriptable.
 
