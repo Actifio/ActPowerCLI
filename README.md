@@ -27,11 +27,15 @@ Find out where we should place the ActPowerCLI PowerShell module in the environm
 ```
 Get-ChildItem Env:\PSModulePath | format-list
 ```
+Try to avoid installing ActPowerCLI into multiple folders.  You can check for existing installs with this command:
+```
+(Get-Module -ListAvailable ActPowerCLI).path
+```
 
 ### 2)    Install or Upgrade ActPowerCLI
 
 The commands are basically the same for each OS.
-To upgrade simpley run the two Invoke-WebRequest commands.  If you get permission denied, delete the old files first.
+To upgrade simpley run the two Invoke-WebRequest commands.  If you get permission denied because the existing files are read only, delete the old files first.
 
 #### Linux OS Install directions
 
@@ -309,6 +313,80 @@ Equally if you have multiple parameters, don't stack them.  So if we want to to 
 Don't use this syntax:
 ```
 -xy
+```
+
+# Detecting errors and failures
+
+One design goal of ActPowerCLI is for all user messages to be easy to understand and formatted nicely.   However when a command fails, the return code shown by $? will not indicate this.  For instance in these two examples I try to connect and check $? each time.  However the result is the same for both cases.
+
+Successful login:
+```
+PS /Users/anthony/git/ActPowerCLI> Connect-Act 172.24.1.180 av passw0rd -i
+Login Successful!
+PS /Users/anthony/git/ActPowerCLI> $?
+True
+```
+
+Unsuccessful login:
+```
+PS /Users/anthony/git/ActPowerCLI> Connect-Act 172.24.1.180 av password -i
+
+errormessage                               errorcode
+------------                               ---------
+java.lang.SecurityException: Login failed.     10011
+
+PS /Users/anthony/git/ActPowerCLI> $?
+True
+```
+
+The solution for the above is to check for errormessage for every command. 
+Lets repeat the same exercise but using -q for quiet login
+
+In a successful login the variable $loginattempt is empty
+
+```
+PS /Users/anthony/git/ActPowerCLI> $loginattempt = Connect-Act 172.24.1.180 av passw0rd -i -q
+PS /Users/anthony/git/ActPowerCLI> $loginattempt
+```
+
+But an unsuccessful login can be 'seen'.  
+
+```
+PS /Users/anthony/git/ActPowerCLI> $loginattempt = Connect-Act 172.24.1.180 av password -i -q
+PS /Users/anthony/git/ActPowerCLI> $loginattempt
+
+errormessage                               errorcode
+------------                               ---------
+java.lang.SecurityException: Login failed.     10011
+
+PS /Users/anthony/git/ActPowerCLI> $loginattempt.errormessage
+java.lang.SecurityException: Login failed.
+```
+
+So we could test for failure by looking for the .errormessage
+
+```
+if ($loginattempt.errormessage)
+{
+  write-host "Login failed"
+}
+```
+
+We can then take this a step further in a script.   If a script has clearly failed, then if we set an exit code, this can be read using $LASTEXITCODE.  We put this into a script (PS1).   NOTE!  If you run this inside a PWSH window directly, it will exit the PWSH session (rather than the PS1 script)"
+
+```
+if ($loginattempt.errormessage)
+{
+  write-host "Login failed"'
+  exit 1
+}
+```
+
+We can then read for this exit code like this:
+
+```
+PS /Users/anthony/git/ActPowerCLI> $LASTEXITCODE
+1
 ```
 
 # I have more questions!
