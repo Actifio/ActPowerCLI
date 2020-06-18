@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.16'
+# ModuleVersion = '10.0.1.17'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
@@ -451,6 +451,16 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 	}
 }
 
+# we dont want to precreate all the SARG functions, but reportlist is a good one to help the client understand if SARG commands dont work.
+function reportlist ()
+{
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act.  Report commands are only loaded after you login to an Appliance."  
+        return;
+    }
+    Get-SARGReport reportlist "-p"
+}
 
 # create the functions so that report* commands work like they do with SSH CLI
 function New-SARGCmdlets()
@@ -497,8 +507,6 @@ function New-SARGCmdlets()
 	{
 		set-item -path function:global:$cmd -value { Get-SARGReport $cmd $args}.getNewClosure(); 
     }
-    # handle reportlist since it wont report itself
-    set-item -path function:global:reportlist -value { Get-SARGReport reportlist "-p"O }.getNewClosure();
 }
 
 
