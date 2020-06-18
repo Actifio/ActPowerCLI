@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to ActPowerCLI will be documented in this file
 
+## [10.0.1.16] 2020-06-18
+All error messages that are locally generated will use the same format as appliance generated, making the behaviour more consistent and scriptable.
+
 ## [10.0.1.15] 2020-06-16
 Added helpful exit message when Get-SARGReport is run without a subcommand, rather than no message
 When Get-SARGReport is run with -h will now show reportlist output rather than no message
