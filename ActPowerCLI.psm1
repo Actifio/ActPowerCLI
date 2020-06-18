@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.15'
+# ModuleVersion = '10.0.1.16'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
@@ -94,13 +94,13 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         }
         if ($RestError -like "The operation was canceled.")
         {
-            Write-Host "No response was received from $acthost after 15 seconds"
-            break;
+            Get-ActErrorMessage -messagetoprint  "No response was received from $acthost after 15 seconds"
+            return;
         }
         elseif ($RestError -like "Connection refused")
         {
-            Write-Host "Connection refused received from $acthost"
-            break;
+            Get-ActErrorMessage -messagetoprint  "Connection refused received from $acthost"
+            return;
         }
         elseif ($RestError) 
         {
@@ -165,7 +165,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
 		} 
 		else 
 		{
-			Write-Error "Password file: $passwordfile could not be opened."
+			Get-ActErrorMessage -messagetoprint "Password file: $passwordfile could not be opened."
 			return;
 		}
     }
@@ -195,12 +195,12 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     if ($RestError -like "The operation was canceled.")
     {
-        Write-Host "No response was received from $acthost after 15 seconds"
+        Get-ActErrorMessage -messagetoprint "No response was received from $acthost after 15 seconds"
         return;
     }
     elseif ($RestError -like "Connection refused")
     {
-        Write-Host "Connection refused received from $acthost"
+        Get-ActErrorMessage -messagetoprint "Connection refused received from $acthost"
         return;
     }
     elseif ($RestError) 
@@ -208,7 +208,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         $loginfailure = Test-ActJSON $RestError
         if ( ($loginfailure.err_code) -and (!($loginfailure.errormessage)) )
         {
-            write-host "Login failed.  You may be trying to login to an AGM"
+            Get-ActErrorMessage -messagetoprint "Login failed.  You may be trying to login to an AGM"
         }
         else
         {
@@ -282,7 +282,11 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     #>
  
 
-    Test-ActConnection
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
+        return;
+    }
     # disconnect
     $Url = "https://$acthost/actifio/api/logout" + "?&sessionid=$ACTSESSIONID"
     $RestError = $null
@@ -342,7 +346,11 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 
 
     # make sure we have something to connect to
-    Test-ActConnection
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
+        return;
+    }
 
     if ( (!($reportname)) -and ($help))
     {
@@ -351,7 +359,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 
     if (!($reportname))
     {
-        write-host "No reportname was provided. Please provide a reportname."
+        Get-ActErrorMessage -messagetoprint "No reportname was provided. Please provide a reportname."
         return;
     }
     if ($sargparms) 
@@ -454,7 +462,11 @@ function New-SARGCmdlets()
 
 
     # make sure we have something to connect to
-    Test-ActConnection
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
+        return;
+    }
     $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
     Try
     {  
@@ -560,7 +572,11 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
     #>
 
     # make sure we have something to connect to
-    Test-ActConnection
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
+        return;
+    }
 	# if no subcommand is provided, display the list of subcommands and exit
 	if ( $subcommand -eq "" )
 	{
@@ -735,7 +751,13 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     # this function will imitate udstask so that users don't need to remember each
     # individual function.
     # make sure we have something to connect to
-    Test-ActConnection
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
+        return;
+    }
+    if ($acttestfailed -eq "true")
+    { break }
     # if no subcommand is provided, get the list of udstask commands and exit.
 	if ( $subcommand -eq "" )
 	{
@@ -839,7 +861,7 @@ Function Save-ActPassword([string]$filename)
 	# if the filename already exists. don't overwrite it. error and exit.
 	if ( Test-Path $filename ) 
 	{
-		Write-Error "The file: $filename already exists. Please delete it first.";
+		Get-ActErrorMessage -messagetoprint "The file: $filename already exists. Please delete it first.";
 		return;
 	}
 
@@ -850,34 +872,16 @@ Function Save-ActPassword([string]$filename)
 
 	if ( $? )
 	{
-		echo "Password saved to $filename."
-		echo "You may now use -passwordfile with Connect-Act to provide a saved password file."
+		write-host "Password saved to $filename."
+		write-host "You may now use -passwordfile with Connect-Act to provide a saved password file."
 	}
 	else 
 	{
-		Write-Error "An error occurred in saving the password";
+		Get-ActErrorMessage -messagetoprint "An error occurred in saving the password";
 	}
 }
 
-# this function prevents errors trying to  run commands without these variables set.
-Function Test-ActConnection
-{
-    <#
-    .SYNOPSIS
-    This is an internal function used to test if parms exist to connect to an appliance.  You do not use this function directly
-    #>
 
-
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) )
-    {
-        Write-host ""
-        Write-Host "Error"
-        Write-Host "-----"
-        Write-Host "Not logged in or session expired. Please login using Connect-Act"
-        Write-Host ""
-        break;
-    }
-}
 
  # function to imitate usvcinfo so that users don't need to remember each individual cmdlet
 Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
@@ -903,22 +907,26 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
    
     # no help is available for this command
     # make sure we have something to connect to
-    Test-ActConnection
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
+        return;
+    }
     # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
     if (!($ACTPLATFORM))
     {
-        Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is Unknown"
+        Get-ActErrorMessage -messagetoprint "Error: usvcinfo command is only available on Actifio CDS. Current platform is Unknown"
         return
     }
 	if ( $ACTPLATFORM.toLower() -ne "cds" ) 
 	{
-		Write-Host "Error: usvcinfo command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
+		Get-ActErrorMessage -messagetoprint "Error: usvcinfo command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
 		return
 	}
 	# if no subcommand is provided, display the list of subcommands and exit
 	if ( $subcommand -eq "" )
 	{
-        Write-Host "Please supply a command such as lsvdisk or lsmdisk"
+        Get-ActErrorMessage -messagetoprint "Please supply a command such as lsvdisk or lsmdisk"
         return
     }
     # if we got to here we are going to try a udsinfo command
@@ -1001,22 +1009,26 @@ Function usvctask([string]$subcommand, [string]$argument)
 
     # this command will allow users to run specific usvctask commands.
     # make sure we have something to connect to
-    Test-ActConnection
+    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    { 
+        Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
+        return;
+    }
     # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
     if (!($ACTPLATFORM))
     {
-        Write-Host "Error: usvctask command is only available on Actifio CDS. Current platform is Unknown"
+        Get-ActErrorMessage -messagetoprint "Error: usvctask command is only available on Actifio CDS. Current platform is Unknown"
         return
     }
 	if ( $ACTPLATFORM.toLower() -ne "cds" ) 
 	{
-		Write-Host "Error: usvctask command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
+		Get-ActErrorMessage -messagetoprint "Error: usvctask command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
 		return
 	}
 	# if no subcommand is provided, display the list of subcommands and exit
 	if (!($subcommand))
 	{
-        Write-Host "Please supply a command such as detectmdisk"
+        Get-ActErrorMessage -messagetoprint "Please supply a command such as detectmdisk"
         return
     }
      # if we got to here we are going to try a usvctask command
@@ -1198,6 +1210,18 @@ Function Get-ActAPIDataPost
     }
 }
 
+# generate an error message
+function Get-ActErrorMessage ([string]$messagetoprint)
+{
+
+        $acterror = @()
+        $acterrorcol = "" | Select errormessage
+        $acterrorcol.errormessage = "$messagetoprint"
+        $acterror = $acterror + $acterrorcol
+        $acterror
+}
+
+
 # offer a way to display user rights
 Function Get-Privileges
 {
@@ -1262,7 +1286,7 @@ Function Get-ActAppID([string]$hostname, [string]$appname)
     }
     if (($appname -match '\*') -or ($hostname -match '\*'))
     {
-        Write-Host "Wildcards are not allowed for this Function"
+        Get-ActErrorMessage -messagetoprint "Wildcards are not allowed for this Function"
         return;
     }
     $returnedapp = udsinfo lsapplication -filtervalue "appname=$appname&hostname=$hostname"
@@ -1316,7 +1340,7 @@ Function Get-LastSnap([string]$app, [string]$jobclass, [int]$backupinlast)
     }
     if (($app -match '\*') -or ($jobclass -match '\*'))
     {
-        Write-Host "Wildcards are not allowed for this Function"
+        Get-ActErrorMessage -messagetoprint "Wildcards are not allowed for this Function"
         return;
     }
     if ($app -match '^[0-9]+$')
