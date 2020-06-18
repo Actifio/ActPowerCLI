@@ -35,7 +35,7 @@ Try to avoid installing ActPowerCLI into multiple folders.  You can check for ex
 ### 2)    Install or Upgrade ActPowerCLI
 
 The commands are basically the same for each OS.
-To upgrade simpley run the two Invoke-WebRequest commands.  If you get permission denied because the existing files are read only, delete the old files first.
+To upgrade simply run the two Invoke-WebRequest commands.  If you get permission denied because the existing files are read only, delete the old files first.
 
 #### Linux OS Install directions
 
