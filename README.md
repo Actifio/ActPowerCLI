@@ -42,31 +42,49 @@ Install-Module -Name ActPowerCLI
 
 If the install worked, you can now move to Step 3.
 
+#### Upgrades using PowerShell Gallery
+
+Note if you run 'Install-Module' to update an installed module, it will complain.  You need to run:
+```
+Update-Module -name ActPowerCLI
+```
+It will install the latest version and leave the older version in place.  To see the version in use versus all versions downloaded use these two commands:
+```
+Get-InstalledModule actpowercli
+Get-InstalledModule actpowercli -AllVersions
+```
+To uninstall all older versions run this command:
+```
+$Latest = Get-InstalledModule actpowercli; Get-InstalledModule actpowercli -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module
+```
+
+#### Install from GitHub
+
 If you cannot access Powershell gallery then use these instructions:
 
 The commands are basically the same for each OS.
 To upgrade simply run the two Invoke-WebRequest commands.  If you get permission denied because the existing files are read only, delete the old files first.
 
-#### Linux OS Install directions
+##### Linux OS Install directions
 
 ```
 pwsh
 mkdir /opt/microsoft/powershell/7/Modules/ActPowerCLI
 cd /opt/microsoft/powershell/7/Modules/ActPowerCLI
 ```
-#### Mac OS Install directions
+##### Mac OS Install directions
 ```
 pwsh
 mkdir ~/.local/share/powershell/Modules/ActPowerCLI
 cd ~/.local/share/powershell/Modules/ActPowerCLI
 ```
-#### Windows OS Install directions
+##### Windows OS Install directions
 ```
 pwsh
 mkdir "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
 cd "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
 ```
-####  File download:
+#####  File download:
 Now run these two commands:
 ```
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
