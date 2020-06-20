@@ -7,7 +7,7 @@ The old module was written in C to handle Windows PowerShell not being 'REST API
 
 ### What about an AGM module?
 
-It is being created.
+It is being created.   Look here:  https://github.com/Actifio/AGMPowerCLI-Beta
 
 ### What versions of PowerShell will this module work with?
 
@@ -39,6 +39,8 @@ Install from PowerShell Gallery:
 ```
 Install-Module -Name ActPowerCLI
 ```
+
+If the install worked, you can now move to Step 3.
 
 If you cannot access Powershell gallery then use these instructions:
 
