@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.17'
+ModuleVersion = '10.0.1.18'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
