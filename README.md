@@ -34,54 +34,42 @@ Try to avoid installing ActPowerCLI into multiple folders.  You can check for ex
 
 ### 2)    Install or Upgrade ActPowerCLI
 
+Install from PowerShell Gallery:
+
+```
+Install-Module -Name ActPowerCLI
+```
+
+If you cannot access Powershell gallery then use these instructions:
+
 The commands are basically the same for each OS.
 To upgrade simply run the two Invoke-WebRequest commands.  If you get permission denied because the existing files are read only, delete the old files first.
 
 #### Linux OS Install directions
 
-Presuming you are happy to place into the example folder, these instructions can be followed.   We create a folder for the module and then download the files into that folder.   The module should auto load.
-
-To upgrade repeat the same process except you don't need to create the directory.
-
 ```
 pwsh
 mkdir /opt/microsoft/powershell/7/Modules/ActPowerCLI
 cd /opt/microsoft/powershell/7/Modules/ActPowerCLI
-Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
-Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1                  
-Connect-Act 
 ```
-
 #### Mac OS Install directions
-
-Presuming you are happy to place into the example folder, these instructions can be followed.   We create a folder for the module and then download the files into that folder.   The module should auto load:
-
-To upgrade repeat the same process except you don't need to create the directory.
-
 ```
 pwsh
 mkdir ~/.local/share/powershell/Modules/ActPowerCLI
 cd ~/.local/share/powershell/Modules/ActPowerCLI
-Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
-Invoke-WebRequest -SkipCertificateCheck -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1                  
-Connect-Act 
 ```
-
 #### Windows OS Install directions
-
-Presuming you are happy to place into the example folder, these instructions can be followed.   We create a folder for the module and then download the files into that folder.   The module should auto load:
-
-To upgrade repeat the same process except you don't need to create the directory.
-
 ```
 pwsh
 mkdir "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
 cd "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
+```
+####  File download:
+Now run these two commands:
+```
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1
-Connect-Act 
 ```
-
 
 ### 3)  Get some help
 
