@@ -20,19 +20,7 @@ It is a 100% replacement that is intended to be 100% compatible, meaning any exi
 
 ## Usage
 
-
-### 1)    Determine where to place ActPowerCLI if needed
-
-Find out where we should place the ActPowerCLI PowerShell module in the environment by querying the PSModulePath environment variable:
-```
-Get-ChildItem Env:\PSModulePath | format-list
-```
-Try to avoid installing ActPowerCLI into multiple folders.  You can check for existing installs with this command:
-```
-(Get-Module -ListAvailable ActPowerCLI).path
-```
-
-### 2)    Install or Upgrade ActPowerCLI
+### 1)    Install or Upgrade ActPowerCLI
 
 Install from PowerShell Gallery:
 
@@ -64,6 +52,17 @@ If you cannot access Powershell gallery then use these instructions:
 
 The commands are basically the same for each OS.
 To upgrade simply run the two Invoke-WebRequest commands.  If you get permission denied because the existing files are read only, delete the old files first.
+
+#####  Determine where to place ActPowerCLI if needed
+
+Find out where we should place the ActPowerCLI PowerShell module in the environment by querying the PSModulePath environment variable:
+```
+Get-ChildItem Env:\PSModulePath | format-list
+```
+Try to avoid installing ActPowerCLI into multiple folders.  You can check for existing installs with this command:
+```
+(Get-Module -ListAvailable ActPowerCLI).path
+```
 
 ##### Linux OS Install directions
 
