@@ -90,7 +90,7 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1
 ```
 
-### 3)  Get some help
+### 2)  Get some help
 
 
 List the available commands in the ActPowerCLI module:
@@ -108,7 +108,7 @@ Get-Help Connect-Act -examples
 
 Note the original Windows only version has offline help files.   The PowerShell V7 version gets all help on-line.   Report commands will be able to get online help from Appliance release 10.1.0   The usvc commands have limited help at this time.
 
-### 4)  Save your password
+### 3)  Save your password
 
 Create an encrypted password file using the ActPowerCLI Save-ActPassword cmdlet:
 ```
@@ -126,7 +126,7 @@ Key not valid for use in specified state.
 This will cause issues when running saved scripts when two differerent users want to run the same script with the same keyfile.    To work around this issue, please have each user create a keyfile for their own use.   Then when running a shared script, each user should execute the script specifying their own keyfile.  This can be done by using a parameter file for each script.
 
 
-### 5)  Login to your appliance
+### 4)  Login to your appliance
 
 To login to an Actifio appliance (10.61.5.114) as admin and enter password interactvely:
 ```
@@ -140,7 +140,7 @@ You will need to store the certificate during first login if you don't use **-ig
 
 Note you can use **-quiet** to supress messages.   This is handy when scripting.
 
-### 6)  Find out the current version of ActPowerCLI:
+### 5)  Find out the current version of ActPowerCLI:
 
 ```
 (Get-Module ActPowerCLI).Version
@@ -150,7 +150,7 @@ Major  Minor  Build  Revision
 10     0      1      12
 ```
 
-### 7) Example commands
+### 6) Example commands
 
 To list all the Actifio clusters using the udsinfo command:
 ```
@@ -242,7 +242,7 @@ Image_4426735
 PS C:\Users\av>
 ```
 
-### 8)  Disconnect from your appliance
+### 7)  Disconnect from your appliance
 Once you are finished, make sure to disconnect (logout).   If you are running many scripts in quick succession, each script should connect and then disconnect, otherwise each session will be left open to time-out on its own.
 ```
 Disconnect-Act
