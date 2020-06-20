@@ -28,7 +28,7 @@ Install from PowerShell Gallery:
 Install-Module -Name ActPowerCLI
 ```
 
-If the install worked, you can now move to Step 3.
+If the install worked, you can now move to Step 2.
 
 #### Upgrades using PowerShell Gallery
 
