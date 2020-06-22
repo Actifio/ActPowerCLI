@@ -29,6 +29,11 @@ Install-Module -Name ActPowerCLI
 ```
 
 If the install worked, you can now move to Step 2.
+If you had a previously manually created install, where you downloaded from GitHub and want to convert to using PowerShell Gallery (strongly recommended), then delete the previous manual install (just delete the module folder) and run the install from PS Gallery using the command above.  Otherwise you will get an error like this:
+
+```
+Update-Module: Module 'ActPowerCLI' was not installed by using Install-Module, so it cannot be updated.
+```
 
 #### Upgrades using PowerShell Gallery
 
