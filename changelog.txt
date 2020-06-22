@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to ActPowerCLI will be documented in this file
 
+## [10.0.1.19] 2020-06-23
+Corrected issue where udsinfo -h printed every command twice.
+
 ## [10.0.1.18] 2020-06-20
 No functional changes.  This version is uploaded to PSGallery: https://www.powershellgallery.com/packages/ActPowerCLI
 
