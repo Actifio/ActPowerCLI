@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.18'
+# ModuleVersion = '10.0.1.19'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
@@ -590,6 +590,7 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
 	{
         $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
         Get-ActAPIData  $Url
+        return
     }
    if ( $help )
 	{
@@ -764,8 +765,7 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
     }
-    if ($acttestfailed -eq "true")
-    { break }
+
     # if no subcommand is provided, get the list of udstask commands and exit.
 	if ( $subcommand -eq "" )
 	{
