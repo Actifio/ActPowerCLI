@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.19'
+ModuleVersion = '10.0.1.20'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @("Actifio","AGM","Sky","CDS","CDX","VDP")
 
         # A URL to the license for this module.
         # LicenseUri = ''

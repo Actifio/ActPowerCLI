@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.19'
+# ModuleVersion = '10.0.1.20'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
@@ -34,7 +34,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
 
 
     .PARAMETER acthost
-    Required. Hostname or IP to connect to.ACTPRIVILEGES
+    Required. Hostname or IP to connect to.
 
     .PARAMETER actuser
     Required. Username to connect to VDP as. Same username that is used in the 
