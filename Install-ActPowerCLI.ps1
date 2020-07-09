@@ -93,7 +93,7 @@ function ReportActPowerCLI
 Clear-Host
 
 $hostVersionInfo = (get-host).Version.Major
-if ( $hostVersionInfo -lt "5" )
+if ( $hostVersionInfo -lt "7" )
 {
     Write-Host "This installer is for PowerShell Version 7"
     break
