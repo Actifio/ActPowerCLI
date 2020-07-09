@@ -110,7 +110,9 @@ If you find multiple installs, we strongly recommend you delete them all and run
 
 If the install fails with:
 ```
-.\Install-ActPowerCLI.ps1: File C:\Users\av\Downloads\ActPowerCLI-PS7-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 cannot be loaded. The file C:\Users\av\Downloads\ActPowerCLI-PS7-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170.
+.\Install-ActPowerCLI.ps1: File C:\Users\av\Downloads\ActPowerCLI-PS7-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 cannot be loaded. 
+The file C:\Users\av\Downloads\ActPowerCLI-PS7-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 is not digitally signed. You cannot run this script on the current system. 
+For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170.
 ```
 Then  run this command:
 ```
