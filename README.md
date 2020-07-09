@@ -51,7 +51,7 @@ To uninstall all older versions run this command:
 $Latest = Get-InstalledModule actpowercli; Get-InstalledModule actpowercli -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module
 ```
 
-#### Install from GitHub
+#### Install Direct from GitHub
 
 If you cannot access Powershell gallery then use these instructions:
 
@@ -94,6 +94,31 @@ Now run these two commands:
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1
 ```
+
+#### Manual install
+
+Serious corporate servers will not allow downloads from PowerShell gallery or even access to GitHub, so for these we have the following process:
+
+1.  From GitHub, use the Green Code download button to download the ActPowerCLI-PS7 repo as a zip file
+1.  Copy the Zip file to the server where you want to install it
+1.  For Windows, Right select on the zip file, choose  Properties and then use the Unblock button next to the message:  "This file came from another computer and might be blocked to help protect  your computer."
+1.  For Windows, now right select and use Extract All to extract the contents of the zip file to a folder.  It doesn't matter where you put the folder.  For Mac it should automatically unzip.  For Linux use the unzip command to unzip the folder.
+1.  Now start PWSH and change directory to the  ActPowerCLI-PS7-main directory that should contain our module files.   
+1.  There is an installer, Install-ActPowerCLI.   So run that with ./Install-ActPowerCLI.ps1
+If you find multiple installs, we strongly recommend you delete them all and run the installer again to have just one install.
+
+
+If the install fails with:
+```
+.\Install-ActPowerCLI.ps1: File C:\Users\av\Downloads\ActPowerCLI-PS7-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 cannot be loaded. The file C:\Users\av\Downloads\ActPowerCLI-PS7-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 is not digitally signed. You cannot run this script on the current system. For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170.
+```
+Then  run this command:
+```
+Get-ChildItem .\Install-ActPowerCLI.ps1 | Unblock-File
+```
+Then re-run the installer.  The installer will unblock all the files.
+
+
 
 ### 2)  Get some help
 
