@@ -69,7 +69,7 @@ function CreateModuleContent
   # Attempts to create a new folder and copy over the ActPowerCLI Module contents
   try
   {
-    $null = Get-ChildItem -Path '$PSScriptRoot\ActPowerCLI*' -Recurse | Unblock-File
+    $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI* -Recurse | Unblock-File
     $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
     $null = Copy-Item $PSScriptRoot\ActPowerCLI* $InstallPath -Force -Recurse -ErrorAction Stop
     $null = Test-Path -Path $InstallPath -ErrorAction Stop
