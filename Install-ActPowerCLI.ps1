@@ -95,7 +95,8 @@ Clear-Host
 $hostVersionInfo = (get-host).Version.Major
 if ( $hostVersionInfo -lt "7" )
 {
-    Write-Host "This installer is for PowerShell Version 7"
+    Write-Host "This module only works with PowerShell Version 7.  You are running version $hostVersionInfo."
+    Write-Host "You will need to install PowerShell Version 7 and try again"
     break
 }
 
