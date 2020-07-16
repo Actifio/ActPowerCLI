@@ -51,53 +51,10 @@ To uninstall all older versions run this command:
 $Latest = Get-InstalledModule actpowercli; Get-InstalledModule actpowercli -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module
 ```
 
-#### Install Direct from GitHub
-
-If you cannot access Powershell gallery then use these instructions:
-
-The commands are basically the same for each OS.
-To upgrade simply run the two Invoke-WebRequest commands.  If you get permission denied because the existing files are read only, delete the old files first.
-
-#####  Determine where to place ActPowerCLI if needed
-
-Find out where we should place the ActPowerCLI PowerShell module in the environment by querying the PSModulePath environment variable:
-```
-Get-ChildItem Env:\PSModulePath | format-list
-```
-Try to avoid installing ActPowerCLI into multiple folders.  You can check for existing installs with this command:
-```
-(Get-Module -ListAvailable ActPowerCLI).path
-```
-
-##### Linux OS Install directions
-
-```
-pwsh
-mkdir /opt/microsoft/powershell/7/Modules/ActPowerCLI
-cd /opt/microsoft/powershell/7/Modules/ActPowerCLI
-```
-##### Mac OS Install directions
-```
-pwsh
-mkdir ~/.local/share/powershell/Modules/ActPowerCLI
-cd ~/.local/share/powershell/Modules/ActPowerCLI
-```
-##### Windows OS Install directions
-```
-pwsh
-mkdir "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
-cd "C:\Program Files\PowerShell\7\Modules\ActPowerCLI"
-```
-#####  File download:
-Now run these two commands:
-```
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psd1 -OutFile ActPowerCLI.psd1
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/Actifio/ActPowerCLI-PS7/main/ActPowerCLI.psm1 -OutFile ActPowerCLI.psm1
-```
 
 #### Manual install
 
-Serious corporate servers will not allow downloads from PowerShell gallery or even access to GitHub, so for these we have the following process:
+Many corporations will not allow downloads from PowerShell gallery or even access to GitHub, so for these we have the following process:
 
 1.  From GitHub, use the Green Code download button to download the ActPowerCLI-PS7 repo as a zip file
 1.  Copy the Zip file to the server where you want to install it
