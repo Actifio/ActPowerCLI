@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.20'
+# ModuleVersion = '10.0.1.21'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
 {
@@ -1058,10 +1058,20 @@ Function usvctask([string]$subcommand, [string]$argument)
              }
              else
              {
-                 $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                 $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
-                 $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                 $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
+                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
+                # if we see force and a value then the value is actually the argument and force has eaten it
+                if ($firstword -eq "force")
+                {
+                    $udsopts =  $udsopts + "&" + "force" + "=" + "true" 
+                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                    $udsopts =  $udsopts + "&argument" + "="  + "$Encodedsecondword"
+                }
+                else 
+                {
+                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
+                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
+                }
              }
          }
      }

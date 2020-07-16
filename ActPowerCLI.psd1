@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.20'
+ModuleVersion = '10.0.1.21'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -98,16 +98,52 @@ PrivateData = @{
         Tags = @("Actifio","AGM","Sky","CDS","CDX","VDP")
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/Actifio/ActPowerCLI-PS7'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/Actifio/ActPowerCLI-PS7'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://i.imgur.com/QAaK5Po.jpg'
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = '
+        ## [10.0.1.21] 2020-07-16
+        usvctask rmmdisk only worked if -force was the first parameter.   Added check for this, so both of these now work (previously only the upper one worked):
+        usvctask rmmdisk -force -mdisk mdisk1 mdiskgrp1 
+        usvctask rmmdisk -mdisk mdisk1 -force mdiskgrp1 
+        
+        ## [10.0.1.20] 2020-06-24
+        Added Tags to PSD file so module can be found in PowerShell Gallery
+        
+        ## [10.0.1.19] 2020-06-23
+        Corrected issue where udsinfo -h printed every command twice.
+        
+        ## [10.0.1.18] 2020-06-20
+        No functional changes.  This version is uploaded to PSGallery: https://www.powershellgallery.com/packages/ActPowerCLI
+        
+        ## [10.0.1.17] 2020-06-19
+        Because report commands do not load as functions until after Connect-Act, this causes confusion.   Added reportlist as a discreet function to give useful error message.
+        
+        ## [10.0.1.16] 2020-06-18
+        All error messages that are locally generated will use the same format as appliance generated, making the behaviour more consistent and scriptable.
+        
+        ## [10.0.1.15] 2020-06-16
+        Added helpful exit message when Get-SARGReport is run without a subcommand, rather than no message
+        When Get-SARGReport is run with -h will now show reportlist output rather than no message
+        Corrected issue where when Connect-Act was run with -quiet, user couldnt run any SARG reports 
+        Added URL encoding to SARG payload
+        Added code to support SARG help when it is supported on Appliance Side
+        
+        ## [10.0.1.14] 2020-06-14
+        Stop exporting private functions
+        
+        ## [10.0.1.13] 2020-06-14
+        Added missing cmdlets: Get-Priviledges, Get-LastSnap, Get-ActAppID  as functions
+        Improved help
+        
+        ## [10.0.1.12] 2020-06-13
+        Initial release'
 
         # Prerelease string of this module
         # Prerelease = ''
