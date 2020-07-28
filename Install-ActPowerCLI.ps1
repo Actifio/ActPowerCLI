@@ -95,10 +95,13 @@ Clear-Host
 $hostVersionInfo = (get-host).Version.Major
 if ( $hostVersionInfo -lt "7" )
 {
-    Write-Host "This module only works with PowerShell Version 7.  You are running version $hostVersionInfo."
-    Write-Host "You will need to install PowerShell Version 7 and try again"
+    Write-Host "This installer is for PowerShell Version 7"
     break
 }
+# print version we are installing
+Import-LocalizedData -BaseDirectory .\ -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
+Write-host 'Installer for ActPowerCLI version:' $ActModuleData.ModuleVersion
+Write-host ""
 
 [Array]$ActInstall = GetActPowerCLIInstall
 if ($ActInstall.Length -gt 0)
