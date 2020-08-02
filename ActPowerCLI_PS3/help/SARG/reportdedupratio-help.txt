@@ -1,0 +1,25 @@
+
+***************************************************************************************************
+This is the Actifio report to display the efficiency of the dedup pool.
+This report will show the full size of all dedup, direct to dedup and dedup-async images in the dedup pool.
+Images in the remote-dedup class are not counted as they are stored in a remote dedup pool.
+While Actifio always performs incremental data capture, each image is stored as a full copy.
+This means the summed full size of all images could be a very large number.
+
+This report will also show the size of the actual data written to the dedup pool after deduplication 
+and compression.
+
+This report will then show the ratio between those two numbers.
+
+The following options are available:
+
+-c            To change the output to comma separated variable (CSV)
+-n            To not print the header lines
+-t            To print in table output
+-u            To display size values using specified units, either g for GB or t for TB
+
+For instance to get output in TB use this command:
+reportdedupratio -u t
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

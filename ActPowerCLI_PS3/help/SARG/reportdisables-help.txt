@@ -1,0 +1,15 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list any disabled schedules, expiration or dedupasyncs.
+The time and date shown is the date that the schedule was disabled.   
+You can enable these functions using the GUI.
+
+This report also lists any applications where application consistency has been disabled using 
+the Advanced Settings tab.   You can enable app consistency using the GUI.
+
+The following options are available (you can use any mix of them):
+-c            To change the output to comma separated variable (CSV)
+-n            To not print the header lines
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

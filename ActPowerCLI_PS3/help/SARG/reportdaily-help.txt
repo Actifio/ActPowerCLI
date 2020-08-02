@@ -1,0 +1,22 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list Daily Status
+This reports shows how many successful jobs completed in each class in the last 24 hours
+If Production Mirroring (dedup async or streamsnap) is in use it also shows the consistency date of the last replicated image.    
+Applications in consistency groups are not listed.  You can use reportgroups to find them.
+
+The following options are available:
+-a <appid>    To display just one selected application using the Application ID (App ID)
+-c            To change the output to comma separated variable (CSV)
+-d <number>   To display a different number of days backwards from now.
+-l <number>   To change the length of the app name from the default of 20 characters
+-n            To not print the header lines
+-t            Sort on template/profile first (then type/host/app name)
+
+For example:  -d 9 -l 40
+This will display 9 days of job history, lengthening the app name field from 20 to 40 characters
+Invalid parameters will be ignored
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************
+

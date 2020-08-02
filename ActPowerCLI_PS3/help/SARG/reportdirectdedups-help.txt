@@ -1,0 +1,39 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list directdedup jobs for protected applications
+If you specify no parameters you will get all directdedup jobs performed in the last 2 days
+
+The following statistics are provided for each job:
+
+VirtSize(GB)     shows the size of the Applications Disks.  For VMs that is the full size of the VMDKs.
+AppSize(GB)      shows the size of the data being used by the application. 
+BytesRead(MB)    shows the new application data that was found by this job 
+PostDedup(MB)    shows the results of deduplicating the BytesRead
+PostCompress(MB) shows the new data written to the dedup pool for this job after dedup and compression
+Saving%          shows Compressed(MB) as a percentage of BytesRead(MB)
+Ratio            shows the ratio of BytesRead(MB) to PostCompress(MB) (X to 1) 
+ChangeRate%      shows BytesRead(MB) as a percentage of AppSize(GB)
+              
+If the ratio exceeds 99999 to 1 it is capped at 100000.
+If the Compressed value is 0 but BytesRead is non zero, then we also report 100000 to reflect
+total data reduction, since a printed ratio is not possible by simple division.
+
+The following options are available (you can use any mix of them):
+-a <number>   To display a specific application ID
+-c            To change the output to comma separated variable (CSV)
+-d <number>   To display a different number of days backwards from now.
+-l <number>   To change the length of the app name from the default of 20 characters
+-n            To not print the header lines
+-o            To show only on-demand jobs
+-s            To sort by hostname/appname rather than by date and then hostname/appname
+-w            To change column width to exactly match output data with no truncation 
+
+Note that image expiry date is also printed when CSV output is selected
+
+For example:  -d 9 -a 57 -l 40
+This will display 9 days for application ID 57 lengthening the app name from 20 to 40 characters
+Do not use the application name, it must be the application ID, which is always a number.
+Invalid parameters will be ignored
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

@@ -1,0 +1,12 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list connector options.
+
+The following options are available:
+-c            To change the output to comma separated variable (CSV)
+-n            To not print the header lines
+
+These can also be displayed with the command:  udsinfo lspolicyoption
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************
