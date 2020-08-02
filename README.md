@@ -1,26 +1,19 @@
 # ActPowerCLI
-A Powershell module for Powershell V7 that is compatible/replacement for the older Windows only ActPowerCLI that has been available for some time from here:  https://github.com/Actifio/powershell
+A Powershell module to manage Actifio Appliances
 
-### Why write a new Module?
 
-The old module was written in C to handle Windows PowerShell not being 'REST API' friendly, but it is not fully compatible with newer PowerShell versions.  PowerShell 7 needs new syntax to handle new functionality.  By writing a new module we also get one that is significantly smaller and multi-platform.
+### What versions of PowerShell and Operating Systems will this module work with?
 
-### What about an AGM module?
+It will work with Windows PowerShell Version 4 and 5 on the Windows Operating System that have .NET 4.5 installed
+It will work with PowerShell Version 6 on the Windows Operating System that have .NET 4.5 installed
+It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems.
 
-It is being created.   Look here:  https://github.com/Actifio/AGMPowerCLI-Beta
 
-### What versions of PowerShell will this module work with?
-
-It was written and tested for PowerShell V7 with Linux, Mac OS and Windows
-
-### Is it compatible with the old ActPowerCLI?
-
-It is a 100% replacement that is intended to be 100% compatible, meaning any existing PS1 scripts that rely on ActPowerCLI should continue to work.  Don't have the old (10.0.0 or 7.0.0.x versions) installed with the new 10.0.1.x version.
 
 
 ## Usage
 
-### 1)    Install or Upgrade ActPowerCLI
+###   Install from PowerShell Gallery on PowerShell 7
 
 Install from PowerShell Gallery:
 
@@ -35,7 +28,7 @@ If you had a previously manually created install, where you downloaded from GitH
 Update-Module: Module 'ActPowerCLI' was not installed by using Install-Module, so it cannot be updated.
 ```
 
-#### Upgrades using PowerShell Gallery
+###  Upgrades from PowerShell Gallery on PowerShell 7
 
 Note if you run 'Install-Module' to update an installed module, it will complain.  You need to run:
 ```
@@ -52,7 +45,7 @@ $Latest = Get-InstalledModule actpowercli; Get-InstalledModule actpowercli -AllV
 ```
 
 
-#### Manual install
+### Manual install from Github (all OS and all PowerShell versions)
 
 Many corporations will not allow downloads from PowerShell gallery or even access to GitHub, so for these we have the following process:
 
@@ -60,7 +53,7 @@ Many corporations will not allow downloads from PowerShell gallery or even acces
 1.  Copy the Zip file to the server where you want to install it
 1.  For Windows, Right select on the zip file, choose  Properties and then use the Unblock button next to the message:  "This file came from another computer and might be blocked to help protect  your computer."
 1.  For Windows, now right select and use Extract All to extract the contents of the zip file to a folder.  It doesn't matter where you put the folder.  For Mac it should automatically unzip.  For Linux use the unzip command to unzip the folder.
-1.  Now start PWSH and change directory to the  ActPowerCLI-PS7-main directory that should contain our module files.   
+1.  Now start PWSH and change directory to the  ActPowerCLI-main directory that should contain our module files.   
 1.  There is an installer, Install-ActPowerCLI.   So run that with ./Install-ActPowerCLI.ps1
 If you find multiple installs, we strongly recommend you delete them all and run the installer again to have just one install.
 
@@ -79,7 +72,7 @@ Then re-run the installer.  The installer will unblock all the files.
 
 
 
-### 2)  Get some help
+###  Get some help
 
 
 List the available commands in the ActPowerCLI module:
@@ -97,7 +90,7 @@ Get-Help Connect-Act -examples
 
 Note the original Windows only version has offline help files.   The PowerShell V7 version gets all help on-line.   Report commands will be able to get online help from Appliance release 10.1.0   The usvc commands have limited help at this time.
 
-### 3)  Save your password
+###  Save your password
 
 Create an encrypted password file using the ActPowerCLI Save-ActPassword cmdlet:
 ```
@@ -115,7 +108,7 @@ Key not valid for use in specified state.
 This will cause issues when running saved scripts when two differerent users want to run the same script with the same keyfile.    To work around this issue, please have each user create a keyfile for their own use.   Then when running a shared script, each user should execute the script specifying their own keyfile.  This can be done by using a parameter file for each script.
 
 
-### 4)  Login to your appliance
+###  Login to your appliance
 
 To login to an Actifio appliance (10.61.5.114) as admin and enter password interactvely:
 ```
@@ -129,7 +122,7 @@ You will need to store the certificate during first login if you don't use **-ig
 
 Note you can use **-quiet** to supress messages.   This is handy when scripting.
 
-### 5)  Find out the current version of ActPowerCLI:
+###  Find out the current version of ActPowerCLI:
 
 ```
 (Get-Module ActPowerCLI).Version
@@ -139,7 +132,7 @@ Major  Minor  Build  Revision
 10     0      1      12
 ```
 
-### 6) Example commands
+###  Example commands
 
 To list all the Actifio clusters using the udsinfo command:
 ```
@@ -231,7 +224,7 @@ Image_4426735
 PS C:\Users\av>
 ```
 
-### 7)  Disconnect from your appliance
+###  Disconnect from your appliance
 Once you are finished, make sure to disconnect (logout).   If you are running many scripts in quick succession, each script should connect and then disconnect, otherwise each session will be left open to time-out on its own.
 ```
 Disconnect-Act
