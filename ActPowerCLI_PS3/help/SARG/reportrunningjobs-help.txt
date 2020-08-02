@@ -1,0 +1,26 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list running jobs
+This reports shows jobs that are currently running
+
+The following options are available:
+-a <number>   To display a specific application ID
+-c            To change the output to comma separated variable (CSV)
+-e            To show every job type.  Otherwise cleanup jobs are not shown.
+-l <number>   To change the length of the app name from the default of 30 characters
+-m            To enter monitor mode.  The screen will refresh every 5 seconds for one hour
+-n            To not print the header lines
+-s            To not show subjobs.   This makes the output shorter but less detailed
+-t            To sort on Jobclass and then hostname/appname
+-w            To change column width to exactly match output data with no truncation  
+
+For example:  -l 40
+This will lengthen the app name field from 20 to 40 characters
+Invalid parameters will be ignored
+
+The duration column compares start time to system time.  
+Default sort order is by HostName/AppName   
+You can sort first on JobClass using the -t option.  It will sort by JobClass then HostName/AppName
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

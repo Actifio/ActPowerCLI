@@ -1,0 +1,54 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to report exact pool usage.  
+By default this report examines only the snapshot (performance) pool known as act_per_pool000
+This report runs in real time so there is a pause while processing occurs.
+
+Vols             is the number of volumes in the most recent image, not including log disks
+VirtSize         is the actual size of the virtual disks that make up the application in GiB (virtualsize)
+VDisks           is the number of VDisks being used by this application
+Stage(GB)        is the used bytes size of the staging disks (named vm-) that are not log data disks
+Snap(GB)         is the used bytes size of the snapshot disks (named fc-) that are not protecting log data disks
+Logs(GB)         is the used bytes size of all disks (both vm- and fc-) being used to hold log data
+Mount(GB)        is the used bytes size of the mounted images (named rs-).  These are a form of snapshot
+Mirror(GB)       for local apps is the used bytes size of the DAR and Streamsnap snapshots (named fc-)
+Mirror(GB)       for remote apps is the used bytes size of the DAR and Streamsnap staging disks (named vm-) and snapshots of those disks (named fc-)
+LiveClone(GB)    is the used bytes size of the liveclone images (named vm-).  These are a form of staging disk
+Rehydrate(GB)    is the used bytes size of disks being used to rehydrate from dedup (named ct-)
+Clone(GB)        is the used bytes size of disks created by clone jobs (named rs-).  These are a form of staging disk  
+Total(GB)        is the sum of all used bytes.   Image mode disks will be included in this even though they do not appear in other columns
+ActifioInternal  are VDisks that are used internally by Actifio.  They should not be changed or deleted.  Use -u to list them
+AllocatedEmpty   is space that is allocated to the pool but which is not yet being used by any VDisk.  This empty space will be used first (this is CDS only)
+ManuallyDefined  are VDisks have been created manually and are often image mode disks.  Use -u to list them
+UnmatchedVDisks  are VDisks that are not attached to an image, but should be. If they still exist after 24 hours, report them to Actifio CSE to investigate.  Use -u to list them
+
+Default sort order is SourceCluster/AppType/HostName/AppName 
+
+There are three app types that have a special meaning:
+
+UnlistedApp      means that the application is likely in the process of being expired.  If the Application continues to be listed after 24 hours, contact Actifio CSE to have it investigated, as its expiration may be stalled.
+OrphanApp        means the Application has been deleted, but the images created for that application have not yet expired.
+Unprotected      means the Application is no longer protected by an SLA, but the images created for that application have not yet expired.
+
+The following options are available:
+-a <number>   To display a specific application ID
+-c            To change the output to comma separated variable (CSV)
+-e            To measure usage for every pool.  This means every VDisk in every pool will be examined
+-f            Fixed output.   Do not scan for real time usage but instead show usage as at 3am.   Can be used with -z
+-l <number>   To change the length of the app name from the default of 20 characters
+-n            To not print the header lines (CSV only)
+-p <poolname> To select a different pool to the default snapshot pool (which is the pool named act_per_pool000)
+-s            Sort on Clustername/HostName/AppName 
+-t            Sort on Template/HostName/AppName
+-u            Print VDisks that are either Actifio internal, unmatched or manually defined so they can be investigated
+-v            Print number of VDisks in each category of usage.  
+-x            Print extra stats.  This will print totals for certain columns. 
+-y            Diagnostic mode, use only under direction from support.  Will print VDisk names.
+-z            This will force an update of the statistics when used with the -f option
+
+For example:  -l 40
+This will lengthen the app name field from 20 to 40 characters
+Invalid parameters will be ignored
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

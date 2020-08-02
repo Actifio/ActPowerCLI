@@ -1,0 +1,28 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to report on resource consumption per organization
+
+To appear in this report, Actifio needs to have created at least one image of the app.
+Some stats are only updated once every 24 hours at 3am.   You can run with -z to force an update.
+
+AppQty                is the sum of all applications and groups in this organization
+ProtectedAppQty       is the sum of all protected applications or groups in this organization
+MDLUsage(GB)          is based on either used data or device size depending on application type as at 3am
+VDisks                is the sum of all VDisks used as at 3am
+SnapPoolUsage(GB)     is the sum of the Staging Disks and Snapshots as at 3am
+DataCopied(GB)        is the sum of all data copied by snapshots and dedup asyncs over the last 30 days (or from the days set by -d xx)
+LocalPostCompress(GB) is the net new data written to the local dedup pool by this app over the last 30 days (or from the days set by -d xx)
+RemotePostCompress(GB)is the net new data written to any remote dedup pool by this app over the last 30 days (or from the days set by -d xx)
+
+The following options are available (invalid parameters will be ignored):
+
+-c            To change the output to comma separated variable (CSV)
+-d <number>   To display a different number of days backwards from now 
+-n            To not print the header lines
+-t            To print usage by Template rather than by Organization.  This will not count or show unprotected apps
+-w            To change column width to exactly match output data with no truncation 
+-z            This will force an update of the statistics (for MDLUsage, VDisk and SnapPoolUsage columns)
+
+Note that the ProtectedAppQty counts only groups and not the applications inside the groups.
+
+***************************************************************************************************

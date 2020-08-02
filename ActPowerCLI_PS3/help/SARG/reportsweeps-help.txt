@@ -1,0 +1,24 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list garbage collection and sweep jobs
+Garbage collection (GC) jobs identify blocks in the dedup pool that are not owned by any image
+Sweep jobs then remove those blocks
+For a sweep to find unowned blocks, garbage collection must have run first
+If no sweep is scheduled, it will run immediately after GC completes
+Incremental Garbage Collection (IGC) is used to find unowned blocks created by images that expired very quickly
+
+The following statistics are provided for each sweep type job:
+
+SpaceReclaimed(GB)		Blocks removed from the dedup pool by a sweep type job
+SpaceSwept(GB)		    The sweep threshold will determine how much actual space is swept
+
+
+Supplemental information printed at the start of this report will not appear in CSV format or if the no header option is selected
+
+The following option is available:
+-c            To change the output to comma separated variable (CSV)
+-n            To not print the header lines
+-s            To print just GC and Sweep settings
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

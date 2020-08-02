@@ -1,0 +1,37 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list remotededup jobs
+If you specify no parameters you will get all remotededup jobs performed in the last 2 days
+
+The statistics provided are as follows:
+
+VirtSize(GB)  shows the size of the Applications Disks.  For VMs that is the full size of the VMDKs.
+AppSize(GB)   shows the size of the data being used by the application.
+NewLocal(MB)  shows the new data that was produced by the dedup image that this job is sending
+DataSent(MB)  shows the new data written to the remote dedup pool for this job
+TotalSent(MB) shows the total amount of traffic sent to the remote site for this job
+Saving%       shows the reduction of NewLocal versus TotalSent
+
+TotalSent includes meta-data as well as dedup data this means TotalSent may exceed DataSent 
+due to the meta data that is sent with each image
+
+The following options are available (you can use any mix of them):
+
+-a <number>   To display a specific application ID
+-c            To change the output to comma separated variable (CSV)
+-d <number>   To display a different number of days backwards from now.
+-l <number>   To change the length of the app name from the default of 20 characters
+-n            To not print the header lines
+-o            To show only on-demand jobs
+-s            To sort by hostname/appname rather than by date and then hostname/appname
+-w            To change column width to exactly match output data with no truncation 
+
+Note that image expiry date is also printed when CSV output is selected
+
+For example:  -d 9 -a 57 -l 40
+This will display 9 days for application ID 57 lengthening the app name from 20 to 40 characters
+Do not use the application name, it must be the application ID, which is always a number
+Invalid parameters will be ignored
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

@@ -1,0 +1,25 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list Pool Usage.
+This reports shows real time usage as well as  size and growth of each pool over the last 24 hours and the last seven days.
+Historical stats are measured at 3am.
+Note that dedup capacity is reported as % of physical capacity since % is reserved space.
+The dedup pool name also has the maximum possible size including reserve in brackets.   For example: (128 TiB Max Size).
+
+Note that if pool names have been changed, then the internal name used by Actifio software is also printed in brackets.
+This internal name is reported by reportmdiskspace, so doing this allows pools to be compared between reports.
+
+Note also that the free space shown in reportmdiskspace will not be the same as that shown by reportpools.
+This is because reportmdiskspace shows allocated space while reportpools shows space that is actually in use by live data.
+
+The following options are available:
+-c            To change the output to comma separated variable (CSV)
+-n            To not print the header lines
+-u            To display size values in TiB rather than GiB.  There are no other size choices
+
+To get a full list of all available reports, use the command:   reportlist
+
+To get further information you can also use the following CLI commands:
+udsinfo lsdiskpool
+udsinfo lsdiskpoolstat
+***************************************************************************************************

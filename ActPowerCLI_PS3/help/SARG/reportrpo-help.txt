@@ -1,0 +1,41 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list the more recent consistent image in each jobclass for each 
+protected application.
+The time and date shown for each joblass is the consistency date, which is the point at which the
+snapshot to create that image was generated.   This is useful for learning what is the most recent 
+point in time that Actifio can present to you.  Note that if a remote dedup is created from a 
+local dedup, which is created from a snapshot, then all three will have the same consistency date.
+There may be many other images in each jobclass, this report only shows the most recent.
+
+The logsmart column shows the most recent log date that is available.   There may be circumstances 
+when the most recent snapshot has a slightly older date than the most recent logsmart data.   
+This is normal as a new snap may have been created which has not accumulated any logs yet.  
+To confirm use reportimages -axxxx where xxxx is the application ID.
+
+Default sort order is by app type, then host name then app name.
+If you wish to sort by template use the -t option.  This makes it easier to spot SLA misses.
+
+Consistency groups are always shown by default.   Individual apps inside a CG are not listed.
+
+The following options are available:
+-a <appid>    To display just one selected application using the Application ID (App ID)
+-c            To change the output to comma separated variable (CSV)
+-l <number>   To change the length of the app name from the default of 20 characters
+-n            To not print the header lines
+-o            Show the oldest image in each class rather than the most recent
+-s            Sort on hostname/appname rather than apptype/hostname/appname 
+-t            Sort on template/profile first (then host/app name)
+-v            To print cloud vault RPO
+-w            To change column width to exactly match output data with no truncation 
+
+For example:  -l 40
+This will lengthen the app name field from 20 to 40 characters
+Invalid parameters will be ignored
+
+Other reports that may interest you:
+reportimagecount  Use this to learn how many images exist in each jobclass for each application.
+reportimages      Use this to list those specific images for an application or jobclass or both.
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

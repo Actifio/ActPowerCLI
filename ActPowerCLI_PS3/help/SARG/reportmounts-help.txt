@@ -1,0 +1,19 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list mount, prep-mount and remote-mount jobs in the last two days
+
+The following options are available (you can use any mix of them):
+-a <number>   To display a specific application ID
+-c            To change the output to comma separated variable (CSV)
+-d <number>   To display a different number of days backwards from now.
+-l <number>   To change the length of the app name from the default of 20 characters
+-n            To not print the header lines
+-s            To sort by hostname/appname rather than by date and then hostname/appname
+-w            To change column width to exactly match output data with no truncation 
+
+For example:  -d 9 -l 40
+This will display 9 days of job history, lengthening the app name from 20 to 40 characters
+Invalid parameters will be ignored
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

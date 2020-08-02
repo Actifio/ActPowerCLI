@@ -1,0 +1,18 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to display network port throughput
+By default this report will run for 20 intervals and then stop
+
+The following options are available:
+
+-c            To change the output to comma separated variable (CSV)
+-i            To change the number of lines of output that are printed from the default of 20
+-n            To not print the header lines
+-r            To change the data capture rate from 5 seconds to another value in seconds
+
+For instance the following command will output CSV data with 2 second of data per line and 10 lines
+
+reportnet -c -i10 -r2
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

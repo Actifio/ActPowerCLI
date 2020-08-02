@@ -1,0 +1,22 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list Policy Templates.
+
+We can use -e to display unused templates, however there are two ways this report behaves:
+
+- If there are no protected applications (such as on a brand new Appliance), all Policy Templates will
+be printed regardless of whether -e is used.
+
+- Once the first application is protected, only policy templates in use will be printed.  
+You could then start using -e to force all templates to be printed.   
+
+If you have templates or profiles that will never be used, we recommend you delete them.
+
+The following options are available:
+
+-c            To change the output to comma separated variable (CSV)
+-e            Show every template including the ones not currently in use by an SLA
+-n            To not print the header lines
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

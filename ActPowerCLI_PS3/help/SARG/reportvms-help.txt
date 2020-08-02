@@ -1,0 +1,10 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list VM discovery status.  It will list:
+VMs that Actifio has not yet discovered and bonus VMs
+
+The following option is available:
+-c            To change the output to comma separated variable (CSV)
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

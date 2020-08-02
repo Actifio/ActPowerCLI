@@ -1,0 +1,41 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to report SLA violations that have occurred recently
+By default SLA violations caused by the scheduler being off will NOT be shown  
+Use option -s to include them
+The default sort order is to sort by hostname/appname and then by date
+
+The following options are available:
+
+-a <number>   To display a specific application ID
+-c            To change the output to comma separated variable (CSV)
+-d <number>   To display SLA Violations that occurred in a recent number of recent days
+-e            To include schedule off SLA Violations, which by default are not shown
+-j <jobclass> To only display SLA violations for a particular jobclass
+-n            To not print the header lines
+-p            To show the policy ID instead of the policy name (only if a policy ID is available)
+-s            To sort by hostname/appname rather than by date			
+		
+The -p option to print the policy ID has two features that are worth noting.
+Firstly if the app is no longer protected then the policy name will be printed, not the policy ID.
+Secondly if the CSV output is selected and the -p option is selected, then
+the udstask backup command syntax will be printed.   This will help you rerun that job.
+
+Valid jobclasses are:
+
+dedup
+dedupasync 
+directdedup  
+remotededup 
+snapshot
+
+The following statistics are also reported:
+
+Expected      The number of jobs that were expected to run
+Tolerance     The number of failed jobs that would be tolearated (normally zero)
+Succeeded     The number of successful jobs
+Failed        The number of failed jobs
+
+Invalid parameters will be ignored
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

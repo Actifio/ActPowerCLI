@@ -1,0 +1,19 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list all unprotected applications
+By default applications marked as ignored are not displayed.   
+
+The following options are available (you can use any mix of them):
+-c            To change the output to comma separated variable (CSV)
+-i            To show ignored apps
+-l <number>   To change the length of the app name from the default of 25 characters
+-n            To not print the header lines
+-s            Sort on hostname/appname rather than apptype/hostname/appname  (which is the default)
+-w            To change column width to exactly match output data with no truncation 
+
+For example:  -l 40
+This will lengthen the app name field from 25 to 40 characters
+Invalid parameters will be ignored
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

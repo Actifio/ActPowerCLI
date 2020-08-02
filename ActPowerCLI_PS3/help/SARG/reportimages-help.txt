@@ -1,0 +1,47 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list all available images for an application
+This reports shows the actual images that are available in each job class
+There is also an option using -a0 to list all images for every application
+
+VirtSize         is the actual size of the disks that make up the application in GiB (virtualsize)
+ConsistencyDate  is the actual point in time that the host side image was created
+EndPIT           is the most recent Point In Time (PIT) to which logs are available 
+ExpirationDate   is the date on which the image should expire
+
+The following options are available:
+-a <number>   To display a specific application ID (mandatory)
+-c            To change the output to comma separated variable (CSV)
+-d <number>   To display images created in a particular number of recent days
+-e            To print a command to change expiration by a set number of days (CSV only)
+-j <jobclass> To only display images for a particular jobclass
+-l <number>   To change the length of the app name from the default of 20 characters
+-m <ID>       Print replicateimage command.   Creates CSV output only.  Needs name of the target cluster
+-n            To not print the header lines
+-o            To only show images that were created by on-demand jobs
+-p            To show only orphan images (those created by deleted applications)
+-r            To show only images that were created by a remote cluster
+-w            To change column width to exactly match output data with no truncation 
+-z            Use this option only when advised by Actifio Customer Support Engineering  
+
+There are several valid jobclasses.   They are:
+clone dedup dedupasync directdedup failovertest liveclone mount remote-dedup snapshot streamsnap vault
+
+For example:  -l 40
+This will lengthen the app name field from 20 to 40 characters
+Invalid parameters will be ignored
+
+The -m option will print an example of the replicateimage command.   It takes the current date and time 
+and then using the source images expiration date, creates a replicate command that will create a new image
+with the same expiration date.  It adds one hour to expiration to ensure rounding down does not occur.
+If the expiration date of the source image is in the past, no replicateimage command will be printed.
+This is because the image should already have expired, so it is unclear if it should be replicated.
+
+The -e option will print an example of the chbackup command.   It takes the current expiration date and then
+calculates a new one based on the value put against the -e command.  
+  -e 2   will print a command that can be used to increase the expiration date by two days (the image will exist for 2 extra days)
+  -e -2  will print a command that can be used to reduce the expiration date by two days (the images will exist for 2 less days)
+The command must be run with the -c option and cannot be run with the -m option
+
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

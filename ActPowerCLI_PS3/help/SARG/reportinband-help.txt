@@ -1,0 +1,22 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list all inband vdisks
+The purpose of this report is to identify inband VDisks that are not being protected.
+If a VDisk is part of a Generic App, this will be identified.
+If snapshots are in use, the quantity of snapshots will be shown
+
+Sideband VDisks will not be shown unless they are misnamed.
+If a VDisk is mapped to multiple hosts, only the first mapped host will be listed in normal print mode.
+To see every mapped host use -w or -c.   Each host will be semi-colon separated.
+ 
+The following options are available:
+
+-a <number>   To display a specific application ID (mandatory)
+-c            To change the output to comma separated variable (CSV)
+-n            To not print the header lines
+-w            To change column width to exactly match output data with no truncation 
+
+Note the -c and -w options cannot be run together.  Please only use one of those options.
+ 
+To get a full list of all available reports, use the command:   reportlist
+***************************************************************************************************

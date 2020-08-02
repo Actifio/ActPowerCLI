@@ -1,0 +1,31 @@
+
+***************************************************************************************************
+Welcome to the Actifio report to list all applications in groups.
+
+A Group or Logical Group is a group of unrelated applications that share the same Policy Template
+Data for each application in a Logical Group is not captured at the same point in time
+
+A Consistency Group or CG is a group of applications from a single host
+Actifio will always attempt to snapshot all Applications in a CG at the same time
+
+The default sort order within this is hostname, CG number, app name
+
+The following options are available:
+
+-a <number>   To display a specific application ID 
+-c            To change the output to comma separated variable (CSV)
+-i            To sort on instance name 
+-l <number>   To change the length of the app name from the default of 26 characters
+-n            To not print the header lines
+-p						To only print apps in protected groups
+-t            Sort on template/profile first rather than hostname/CG number/appname 
+-w            To change column width to exactly match output data with no truncation 
+
+For example:  -l 40
+This will lengthen the app name field from 26 to 40 characters.
+Invalid parameters will be ignored
+
+Other reports that may interest you:
+reportlist         To get a full list of all available reports
+reportunprotected  To get a list of applications that are not protected by a Template
+***************************************************************************************************
