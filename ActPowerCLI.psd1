@@ -108,7 +108,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
-        ## [10.0.1.22] 2020-08
+        ## [10.0.1.22] 2020-08-03
         Added sort order logic to bring order to the output
         Handle apps with space in their names
 
