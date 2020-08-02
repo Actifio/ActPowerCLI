@@ -69,6 +69,24 @@ function CreateModuleContent
   # Attempts to create a new folder and copy over the ActPowerCLI Module contents
   try
   {
+    $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI_PS3\* -Recurse | Unblock-File
+    $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
+    $null = Copy-Item $PSScriptRoot\ActPowerCLI* $InstallPath -Force -Recurse -ErrorAction Stop
+    $null = Test-Path -Path $InstallPath -ErrorAction Stop
+    
+    Write-Host -Object "`nInstallation successful."
+  }
+  catch 
+  {
+    throw $_
+  }
+}
+
+function CreateModuleContent7
+{
+  # Attempts to create a new folder and copy over the ActPowerCLI Module contents
+  try
+  {
     $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI* -Recurse | Unblock-File
     $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
     $null = Copy-Item $PSScriptRoot\ActPowerCLI* $InstallPath -Force -Recurse -ErrorAction Stop
@@ -93,15 +111,22 @@ function ReportActPowerCLI
 Clear-Host
 
 $hostVersionInfo = (get-host).Version.Major
+
+# print version we are installing
 if ( $hostVersionInfo -lt "7" )
 {
-    Write-Host "This installer is for PowerShell Version 7"
-    break
+    Import-LocalizedData -BaseDirectory .\ActPowerCLI_PS3 -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
+    Write-host 'Detected PowerShell version:   ' $hostVersionInfo
+    Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
+    Write-host ""
 }
-# print version we are installing
-Import-LocalizedData -BaseDirectory .\ -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
-Write-host 'Installer for ActPowerCLI version:' $ActModuleData.ModuleVersion
-Write-host ""
+else 
+{
+    Import-LocalizedData -BaseDirectory .\ActPowerCLI -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
+    Write-host 'Detected PowerShell version:   ' $hostVersionInfo
+    Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
+    Write-host ""
+}
 
 [Array]$ActInstall = GetActPowerCLIInstall
 if ($ActInstall.Length -gt 0)
@@ -121,26 +146,41 @@ if ($ActInstall.Length -gt 0)
     {
         foreach ($Location in ([Array]$ActInstall = GetActPowerCLIInstall).ModuleBase)
         {
-        $InstallPath = $Location
-        RemoveModuleContent      
+          $InstallPath = $Location
+          RemoveModuleContent      
         }
         break
     }
     else
     {
         RemoveModuleContent
-        CreateModuleContent
+        if ( $hostVersionInfo -lt "7" )
+        {
+            CreateModuleContent
+        }
+        else 
+        {
+            CreateModuleContent7
+        }
     }
-    }
-    else
-    {
+}
+else
+{
     Write-Host "Could not find an existing ActPowerCLI Module installation."
-    Write-Host "Where would you like to install it?"
+    Write-Host 'Where would you like to install version' $ActModuleData.ModuleVersion
     Write-Host ""
     $InstallPath = InstallMenu -InstallPathList (GetPSModulePath) -InstallAction installation
     $InstallPath = $InstallPath + '\ActPowerCLI\'
-    CreateModuleContent
+    if ( $hostVersionInfo -lt "7" )
+    {
+        CreateModuleContent
+    }
+    else 
+    {
+        CreateModuleContent7
+    }
 }
+
 
 Write-Host -Object "`nActPowerCLI Module installation location(s):"
 ReportActPowerCLI | Format-Table
