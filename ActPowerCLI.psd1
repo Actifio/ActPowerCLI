@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.21'
+ModuleVersion = '10.0.1.22'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -108,6 +108,10 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.22] 2020-08
+        Added sort order logic to bring order to the output
+        Handle apps with space in their names
+
         ## [10.0.1.21] 2020-07-16
         usvctask rmmdisk only worked if -force was the first parameter.   Added check for this, so both of these now work (previously only the upper one worked):
         usvctask rmmdisk -force -mdisk mdisk1 mdiskgrp1 

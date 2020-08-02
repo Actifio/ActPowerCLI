@@ -1,7 +1,7 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.21'
+# ModuleVersion = '10.0.1.22'
 
-function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet, [switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[int]$actmaxapilimit) 
+function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
 {
     <#
     .SYNOPSIS
@@ -24,7 +24,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     Connect to VDP Appliance using a username and password or by specifying -passwordfile
     which will use stored credentials.
 
-    If no password is provided and no passwordfile flag is set, then the cmdlet will
+    If no password is provided and no passwordfile flag is set, then the function will
     prompt for a password
 
     Using -quiet suppresses all successful messages
@@ -228,40 +228,54 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         { 
             Write-Host "Login Successful!"
         }
-         # since login was successful, lets create some environment variables about the Appliance we connected to
-         Try 
-         {
-             $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
-         } 
-         Catch 
-         { 
-             $RestError = $_
-         }
-         if ($RestError) 
-         {
-             Test-ActJSON $RestError
-         }
-         else
-         {
-             if ($resp.result)
-             {
-                 $global:ACTPLATFORM = $resp.result.platform
-             }
-             else 
-             {
-                 $global:ACTPLATFORM = "UNKNOWN"
-             }
-             if ($resp.result.version)
-             {
-                 $global:ACTVERSION = $resp.result.version
-             }
-             else 
-             {
-                 $global:ACTVERSION = "0.0.0.0"
-             }
-         }
-        # now we create CMDLets for SARG
-        New-SARGCmdlets
+        # since login was successful, lets create some environment variables about the Appliance we connected to
+        Try 
+        {
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+        } 
+        Catch 
+        { 
+            $RestError = $_
+        }
+        if ($RestError) 
+        {
+            Test-ActJSON $RestError
+        }
+        else 
+        {
+            if ($resp.result)
+            {
+                $global:ACTPLATFORM = $resp.result.platform.SubString(0,3)
+            }
+            else 
+            {
+                $global:ACTPLATFORM = "UNKNOWN"
+            }
+            if ($resp.result.version)
+            {
+                $global:ACTVERSION = $resp.result.version
+            }
+            else 
+            {
+                $global:ACTVERSION = "0.0.0.0"
+            }
+        }
+        #  if user issued -s they can override sort fetching
+        if ($sortoverride)
+        {
+            $global:ACTSORTOVERRIDE = "y"   
+            $global:ACTSORTORDER = ""      
+        }
+        elseif ($sortoverfile)
+        {
+            $global:ACTSORTOVERRIDE = "f"  
+        }
+        else
+        {
+            $global:ACTSORTOVERRIDE = "n"   
+        }
+        # now we create functions for SARG
+        New-SARGFuncs
     }
 } 
 
@@ -324,6 +338,27 @@ function Disconnect-Act([switch][alias("q")]$quiet)
 }
 
 
+# internal function to pull SARG sort order
+function Get-SARGSortOrder([string]$parmletter,[string]$reportname)
+{
+    if ($ACTPLATFORM -eq "CDS")
+    {
+        $ACTSORTORDER | where-object {$_.option -eq $parmletter -and $_.reportname -eq $reportname -and $_.CDS -eq "Y"} | select-object SortOrder
+    }
+    elseif ($ACTPLATFORM -eq "Sky")  
+    {
+        $ACTSORTORDER | where-object {$_.option -eq $parmletter -and $_.reportname -eq $reportname -and $_.VDP -eq "Y"} | select-object SortOrder
+    }
+    elseif ($ACTPLATFORM -eq "CDX")  
+    {
+        $ACTSORTORDER | where-object {$_.option -eq $parmletter -and $_.reportname -eq $reportname -and $_.CDX -eq "Y"} | select-object SortOrder
+    }
+    else 
+    {
+        $ACTSORTORDER | where-object {$_.option -eq $parmletter -and $_.reportname -eq $reportname -and $_.VDP -eq "Y"} | select-object SortOrder
+    }
+}
+
 # Get-SARGReport function
 function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h")]$help)
 {
@@ -366,6 +401,9 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 	{
         # we are going to send all the SARG command opts in REST format as sargopts
         $sargopts = $null
+        $sargreportsortorder = $null
+        $sargsortordertest =  $null
+        $trimm = $null
         # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  We dump blank lines
         $sargparms = " " + "$sargparms" 
         $dashsep = $sargparms.Split(" -") -notmatch '^\s*$'
@@ -373,7 +411,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
         {
             # remove any whitespace at the end
             $trimm = $line.TrimEnd()
-            # do we have a single letter.  If so this is out parm.   If the user didn't use a dash this will also work,  so -i and i both work
+            # do we have a single letter.  If so this is our parm.   If the user didn't use a dash this will also work,  so -i and i both work
             $length = $trimm.length
             if ( $length -eq 1 )
             {
@@ -382,6 +420,12 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                 { 
                     $helprequest = "y"
                 }
+                $sargsortordertest = $sargreportsortorder = Get-SARGSortOrder -parmletter $trimm -reportname $reportname
+                if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
+                {
+                    $sargreportsortorder = $sargsortordertest
+                }
+
             }
             # if length is greater than one then we either have a parm with search  like -a 1232  or we have grouped parms like -ty
             if ( $length -gt 1 )
@@ -393,7 +437,8 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                 { 
                     if ( ($trimm[0] -eq "a") -or ($trimm[0] -eq "d") )
                     {
-                        $sargopts =  $sargopts + "&" + $trimm[0] + "=" + [System.Web.HttpUtility]::UrlEncode($trimm.substring(1)) 
+                        $namepayload = "'" + $trimm.substring(1) + "'"
+                        $sargopts =  $sargopts + "&" + $trimm[0] + "=" + [System.Web.HttpUtility]::UrlEncode($namepayload)
                     }
                     # if we find only one word then all the parms are together like -ty so we process them one at a time
                     else
@@ -405,6 +450,12 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                             if ($blob -eq "h")
                             { 
                                 $helprequest = "y"
+                            }
+                            # test if we have a matching sort order parm
+                            $sargsortordertest = Get-SARGSortOrder -parmletter $blob -reportname $reportname
+                            if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
+                            {
+                                $sargreportsortorder = $sargsortordertest
                             }
                         }
                     }
@@ -418,8 +469,14 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                     if ( $length -eq 1 )
                     {
                         # the second word should be the search term   Spaces are not an issue
-                        $secondword = $trimm.substring(2)
-                        $sargopts =  $sargopts + "&" + "$firstword" + "=" + [System.Web.HttpUtility]::UrlEncode($secondword) 
+                        $namepayload = "'" + $trimm.substring(2) + "'"
+                        $sargopts =  $sargopts + "&" + "$firstword" + "=" + [System.Web.HttpUtility]::UrlEncode($namepayload) 
+                        # test if we have a matching sort order parm
+                        $sargsortordertest = $sargreportsortorder = Get-SARGSortOrder -parmletter $firstword -reportname $reportname
+                        if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
+                        {
+                            $sargreportsortorder = $sargsortordertest
+                        }
                     }
                 }
             }
@@ -441,13 +498,51 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
         else
         {
             $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
-            Get-ActAPIData  $Url
+            $sargoutput = Get-ActAPIData  $Url
+            if (($sargoutput).errorcode -eq $null)
+            {
+                # if we got here we must have output we can sort,  if we don't have a sort order yet, this is our last chance to get one
+                if ($sargreportsortorder -eq $null)
+                {
+                    $sargreportsortorder = Get-SARGSortOrder -parmletter "-" -reportname $reportname
+                }
+                # if we still don't have a sort order, just give the output without it
+                if (($sargreportsortorder.SortOrder -eq "") -or ($null -eq $sargreportsortorder.SortOrder) )
+                {
+                    $sargoutput
+                }
+                else 
+                {
+                    $sargoutput | select-object $sargreportsortorder.SortOrder.split(",")
+                }
+            }
+            else 
+            {
+                $sargoutput
+                return
+            }
         }
     } 
     else
 	{
         $Url = "https://$acthost/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
-        Get-ActAPIData  $Url
+        $sargoutput = Get-ActAPIData  $Url
+        if (($sargoutput).errorcode -eq $null)
+        {
+            $sargreportsortorder = Get-SARGSortOrder -parmletter "-" -reportname $reportname
+            if (($sargreportsortorder.SortOrder -eq "") -or ($null -eq $sargreportsortorder.SortOrder) )
+            {
+                $sargoutput
+            }
+            else 
+            {
+                $sargoutput | select-object $sargreportsortorder.SortOrder.split(",")
+            }
+        }
+        else
+        {
+            $sargoutput
+        }
 	}
 }
 
@@ -459,11 +554,17 @@ function reportlist ()
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act.  Report commands are only loaded after you login to an Appliance."  
         return;
     }
-    Get-SARGReport reportlist "-p"
+    if (!($args))
+    {
+        Get-SARGReport reportlist "-p"
+    } 
+    else {
+        Get-SARGReport reportlist $args
+    }
 }
 
 # create the functions so that report* commands work like they do with SSH CLI
-function New-SARGCmdlets()
+function New-SARGFuncs()
 {
     <#
     .SYNOPSIS
@@ -501,16 +602,44 @@ function New-SARGCmdlets()
     {
         $sargcmdlist = $reportlistout.result.ReportName
     }    
-    
 	# get the list of sarg commands and set an item for each
 	foreach ($cmd in $sargcmdlist) 
 	{
 		set-item -path function:global:$cmd -value { Get-SARGReport $cmd $args}.getNewClosure(); 
     }
+
+    if ($ACTSORTOVERRIDE -eq "n")
+    {
+        $sortorderfetch = reportlist -s
+        if ($sortorderfetch.SortOrder -ne $null)
+        {
+            $global:ACTSORTORDER = $sortorderfetch
+        }
+        else
+        {
+            $mp = (Get-Module -ListAvailable ActPowerCLI).ModuleBase
+            if ( Test-Path $mp\ActPowerCLI_SortOrder.csv ) 
+            {
+                $global:ACTSORTORDER = Import-Csv -Path $mp\ActPowerCLI_SortOrder.csv -Delimiter ","
+            }
+        }
+    }
+    if ($ACTSORTOVERRIDE -eq "f")
+    {
+        $mp = (Get-Module -ListAvailable ActPowerCLI).ModuleBase
+        if ( Test-Path $mp\ActPowerCLI_SortOrder.csv ) 
+        {
+            $global:ACTSORTORDER = Import-Csv -Path $mp\ActPowerCLI_SortOrder.csv -Delimiter ","
+        }   
+    }
+    if ($ACTSORTOVERRIDE -eq "y")
+    {
+        $global:ACTSORTORDER = ""
+    }
 }
 
 
-# this function will imitate udsinfo so that users don't need to remember each individual cmdlet
+# this function will imitate udsinfo so that users don't need to remember each individual function
 # handle request for udsinfo command
 Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
 {
@@ -734,10 +863,10 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     .DESCRIPTION
     Once you have connected to a VDP Appliance using Connect-Act, you can execute 
     udstask with a subcommand to make changes on a VDP Appliance. Udstask commands conduct
-    actions on an VDP Appliance. Actions such as creation of hosts, users, running
+    actions on a VDP Appliance. Actions such as creation of hosts, users, running
     jobs, etc.
 
-    Output from CDS Is always presented as an object.
+    Output from VDP APpliances is always presented as an object.
 
     use udstask -h to get the list of possible subcommands.
 
@@ -848,10 +977,7 @@ Function Save-ActPassword([string]$filename)
     .DESCRIPTION
     Store the credentials in a file which can be used to login to VDP Appliance.
 
-    Providing a acthost and a cdsuser will prompt for a password which will then be 
-    stored in the file location provided.
-
-    To change the credentials, simply re-run the cmdlet.
+    To change the credentials, simply re-run the function.
 
     .PARAMETER filename
     Required. Absolute or relative location where the file should be saved. 
@@ -891,7 +1017,7 @@ Function Save-ActPassword([string]$filename)
 
 
 
- # function to imitate usvcinfo so that users don't need to remember each individual cmdlet
+ # function to imitate usvcinfo so that users don't need to remember each individual function
 Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
 {
     <#
