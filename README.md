@@ -15,7 +15,7 @@ To be clear:
 * Version 10.0.1.x  is for PowerShell 7 and above and can be installed from the GitHub zip file or PowerShell Gallery
 * Version 10.0.0.x  is for PowerShell 6 and below and can be installed from the GitHub zip file
 
-### What about Windows PowerShell 3?
+#### What about Windows PowerShell 3?
 
 It should work with Windows PowerShell Version 3 on the Windows Operating System that have .NET 4.5 installed, but no further testing is being done on this version
 
@@ -212,27 +212,6 @@ To list out all the workflow configurations on an appliance, use a combination o
 reportworkflows | select id | foreach-object {udsinfo lsworkflow $_.id}
 ```
 
-#### Avoiding white space and multiple lines in array output
-A common requirement is that you may want to get the latest image name for an application, but the command returns white space and/or multiple lines.   In this example the output not only has multiple image names, but white space.  This could result in errors when trying to use this image name in other commands like udstask mountimage
-```
-PS C:\Users\av> $imagename = udsinfo lsbackup -filtervalue "backupdate since 124 hours&appname=SQL-Masking-Prod&jobclass=snapshot" | where {$_.componenttype -eq "0"} | select backupname | ft -HideTableHeaders
-PS C:\Users\av> $imagename
-
-Image_4393067
-Image_4410647
-Image_4426735
-
-
-PS C:\Users\av>
-```
-If we use a slightly different syntax, we can guarantee both no white space and only one image name:
-```
-PS C:\Users\av> $imagename =  $(udsinfo lsbackup -filtervalue "backupdate since 124 hours&appname=SQL-Masking-Prod&jobclass=snapshot" | where {$_.componenttype -eq "0"} | select -last 1 ).backupname
-PS C:\Users\av> $imagename
-Image_4426735
-PS C:\Users\av>
-```
-
 ###  Disconnect from your appliance
 Once you are finished, make sure to disconnect (logout).   If you are running many scripts in quick succession, each script should connect and then disconnect, otherwise each session will be left open to time-out on its own.
 ```
@@ -240,7 +219,68 @@ Disconnect-Act
 ```
 
 
+### Command Primer
 
+#### Check your versions 
+```
+$host.version        (need version 3.0 to 5.1)
+$PSVersionTable.CLRVersion       (need .NET 4.0 or above)
+```
+#### Check your plugins
+```
+Get-ChildItem Env:\PSModulePath | format-list
+Get-module -listavailable 
+Import-module ActPowerCLI
+(Get-Module ActPowerCLI).Version    (need 7.0.0.3 or above)
+```
+
+#### List all commands get help
+```
+Get-Command -module ActPowerCLI
+Get-Help Connect-Act
+Get-Help Connect-Act -examples
+```
+
+#### Store your password (choose just one)
+```
+(Get-Credential).Password | ConvertFrom-SecureString | Out-File "C:\Users\av\Documents\password.key"
+"password" | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString | Out-File "C:\Users\av\Documents\password.key"
+Save-ActPassword -filename "C:\Users\av\Documents\password.key"
+```
+
+#### Login
+```
+Connect-Act 172.24.1.180 av -ignorecerts
+Connect-Act 172.24.1.180 -actuser av -passwordfile "C:\Users\av\Documents\password.key" -ignorecerts
+Connect-Act 172.24.1.180 -actuser av -password passw0rd -ignorecerts 
+Connect-Act 172.24.1.180 -actuser av -password passw0rd -ignorecerts -quiet
+```
+
+#### Example commands
+```
+udsinfo lscluster
+(udsinfo lscluster).operativeip 
+udsinfo lsappclass -name SQLServer
+udsinfo lsappclass -name SQLServer | out-gridview
+udsinfo lsapplication | where-object {$_.appclass -eq "SQLServer"} 
+udsinfo lsapplication | where-object {$_.appclass -eq "SQLServer"} | select appname, id, hostid
+udsinfo lsbackup -filtervalue "jobclass=snapshot&appid=18405"
+udsinfo lsbackup -filtervalue "jobclass=snapshot&appid=18405" | format-table
+Get-LastSnap -?
+Get-LastSnap -app 18405 -jobclass snapshot
+get-sargreport reportlist
+reportpools 
+get-sargreport reportimages -a 0 | select jobclass, hostname, appname | format-table
+reportsnaps | export-csv -path C:\Users\av\Documents\reportsnaps.csv
+reportrpo | select apptype, hostname, appname, snapshotdate
+reportrpo | where {$_.Apptype -eq "VMBackup"} | select appname, snapshotdate
+reportmountedimages | where {$_.Label -eq "$Name"} | foreach { $_.MountedHost }
+```
+#### Logout
+```
+Disconnect-Act
+Disconnect-Act -quiet
+```
 
 
 # New Features only for PowerShell 7 and above
@@ -399,6 +439,26 @@ PS /Users/anthony/git/ActPowerCLI> $LASTEXITCODE
 1
 ```
 
+### How do I avoid white space and multiple lines in array output
+A common requirement is that you may want to get the latest image name for an application, but the command returns white space and/or multiple lines.   In this example the output not only has multiple image names, but white space.  This could result in errors when trying to use this image name in other commands like udstask mountimage
+```
+PS C:\Users\av> $imagename = udsinfo lsbackup -filtervalue "backupdate since 124 hours&appname=SQL-Masking-Prod&jobclass=snapshot" | where {$_.componenttype -eq "0"} | select backupname | ft -HideTableHeaders
+PS C:\Users\av> $imagename
+
+Image_4393067
+Image_4410647
+Image_4426735
+
+
+PS C:\Users\av>
+```
+If we use a slightly different syntax, we can guarantee both no white space and only one image name:
+```
+PS C:\Users\av> $imagename =  $(udsinfo lsbackup -filtervalue "backupdate since 124 hours&appname=SQL-Masking-Prod&jobclass=snapshot" | where {$_.componenttype -eq "0"} | select -last 1 ).backupname
+PS C:\Users\av> $imagename
+Image_4426735
+PS C:\Users\av>
+```
 
 
 ### Why don't the report commands auto-load ?
