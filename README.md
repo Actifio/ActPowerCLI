@@ -52,6 +52,20 @@ Get-ChildItem .\Install-ActPowerCLI.ps1 | Unblock-File
 ```
 Then re-run the installer.  The installer will unblock all the other files.
 
+### All Supported Versions of PowerShell - Upgrade from GitHub download
+
+To upgrade any existing install, follow the Install instructions above. 
+The Installer will detect an existing installation and offer you an option to upgrade it.
+If you have more then one installation, choose the option to delete them all and install just one version in one location.
+
+Common upgrade issues are solved by:
+
+* Closing open PowerShell Sessions that are using the module.   Make sure to close all other sessions.   Sometimes you literally need to close every session and open one fresh one.
+* Unblocking the downloaded zip file.
+* Running the PowerShell session as Administrator, depending on where current installs are and where you want to install to.
+
+
+
 ###   PowerShell 7 - Install from the PowerShell Gallery 
 
 Install from PowerShell Gallery:
