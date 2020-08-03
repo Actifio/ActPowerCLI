@@ -122,7 +122,7 @@ if ( $hostVersionInfo -lt "7" )
 }
 else 
 {
-    Import-LocalizedData -BaseDirectory .\ActPowerCLI -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
+    Import-LocalizedData -BaseDirectory .\ -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
     Write-host 'Detected PowerShell version:   ' $hostVersionInfo
     Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
     Write-host ""
