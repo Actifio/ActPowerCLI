@@ -4,9 +4,9 @@ A Powershell module to manage Actifio Appliances
 
 ### What versions of PowerShell and Operating Systems will this module work with?
 
-It will work with Windows PowerShell Version 4 and 5 on the Windows Operating System that have .NET 4.5 installed
-It will work with PowerShell Version 6 on the Windows Operating System that have .NET 4.5 installed
-It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems.
+* It will work with Windows PowerShell Version 4 and 5 on the Windows Operating System that have .NET 4.5 installed
+* It will work with PowerShell Version 6 on the Windows Operating System that have .NET 4.5 installed
+* It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems.
 
 
 
