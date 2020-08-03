@@ -1,5 +1,0 @@
-The change log is now in the release notes section of the psd1 file, so this file will no longer be used.
-Leaving the file here only so you don't wonder where it went.
-Instead look here for change list:
-
-https://github.com/Actifio/ActPowerCLI-PS7/blob/main/ActPowerCLI.psd1
