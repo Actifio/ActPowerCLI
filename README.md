@@ -8,20 +8,51 @@ A Powershell module to manage Actifio Appliances
 * It will work with PowerShell Version 6 on the Windows Operating System that have .NET 4.5 installed
 * It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems.
 
-Note that there is a separate version of the module for PowerShell version 7.   This is the version that is found in the PowerShell Gallery.    If you install via download from GitHub you don't need to work out which one to install, it will be handled automatically.
+In this repository are two separate versions of ActPowerCLI, but you don't need to work out which one to use.
+It will be handled automatically by the included installer.
 
-To be clear:
+The installer will install one of two versions:
 
-* Version 10.0.1.x  is for PowerShell 7 and above and can be installed from the GitHub zip file or PowerShell Gallery
-* Version 10.0.0.x  is for PowerShell 6 and below and can be installed from the GitHub zip file
+* ActPowerCLI Version 10.0.1.x  is for PowerShell 7 and above and can be installed from the GitHub zip file or PowerShell Gallery
+* ActPowerCLI Version 10.0.0.x  is for PowerShell 6 and below and can be installed from the GitHub zip file
 
 #### What about Windows PowerShell 3?
 
 It should work with Windows PowerShell Version 3 on the Windows Operating System that have .NET 4.5 installed, but no further testing is being done on this version
 
+#### What about PowerShell Gallery?
+
+The PowerShell 7 version of this module is available from the PowerShell Gallery.   This is our preferred version, but many users are still working with Windows PowerShell Version 5.   If this is the case for you, then use the version found here which will handle Windows PowerShell.   If you have moved to Version 7 or are willing to install it, then instead use the version in the PowerShell Gallery (keep reading for instructions).
+
 ## Install
 
-###   PowerShell 7 only - Install from PowerShell Gallery 
+### All Supported Versions of PowerShell - Install from GitHub download
+
+Many corporations will not allow downloads from PowerShell gallery or direct access to GitHub, so for these we have the following process:
+
+1.  From GitHub, use the Green Code download button to download the ActPowerCLI repo as a zip file
+1.  Copy the Zip file to the server where you want to install it
+1.  For Windows, Right select on the zip file, choose  Properties and then use the Unblock button next to the message:  "This file came from another computer and might be blocked to help protect your computer."
+1.  For Windows, now right select and use Extract All to extract the contents of the zip file to a folder.  It doesn't matter where you put the folder.  For Mac it should automatically unzip.  For Linux use the unzip command to unzip the folder.
+1.  Now start PWSH and change directory to the  ActPowerCLI-main directory that should contain the module files.   
+1.  There is an installer, Install-ActPowerCLI.   So run that with ./Install-ActPowerCLI.ps1
+If you find multiple installs, we strongly recommend you delete them all and run the installer again to have just one install.
+1.  Once the installer has finished, you can delete the unpacked zip file and the zip file itself.
+
+
+If the install fails with:
+```
+.\Install-ActPowerCLI.ps1: File C:\Users\av\Downloads\ActPowerCLI-main\ActPowerCLI-main\Install-ActPowerCLI.ps1 cannot be loaded. 
+The file C:\Users\av\Downloads\ActPowerCLI-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 is not digitally signed. You cannot run this script on the current system. 
+For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170.
+```
+Then  run this command:
+```
+Get-ChildItem .\Install-ActPowerCLI.ps1 | Unblock-File
+```
+Then re-run the installer.  The installer will unblock all the other files.
+
+###   PowerShell 7 - Install from the PowerShell Gallery 
 
 Install from PowerShell Gallery:
 
@@ -52,30 +83,6 @@ $Latest = Get-InstalledModule actpowercli; Get-InstalledModule actpowercli -AllV
 ```
 
 
-### Manual install from Github (all OS and all PowerShell versions)
-
-Many corporations will not allow downloads from PowerShell gallery or direct access to GitHub, so for these we have the following process:
-
-1.  From GitHub, use the Green Code download button to download the ActPowerCLI repo as a zip file
-1.  Copy the Zip file to the server where you want to install it
-1.  For Windows, Right select on the zip file, choose  Properties and then use the Unblock button next to the message:  "This file came from another computer and might be blocked to help protect  your computer."
-1.  For Windows, now right select and use Extract All to extract the contents of the zip file to a folder.  It doesn't matter where you put the folder.  For Mac it should automatically unzip.  For Linux use the unzip command to unzip the folder.
-1.  Now start PWSH and change directory to the  ActPowerCLI-main directory that should contain the module files.   
-1.  There is an installer, Install-ActPowerCLI.   So run that with ./Install-ActPowerCLI.ps1
-If you find multiple installs, we strongly recommend you delete them all and run the installer again to have just one install.
-
-
-If the install fails with:
-```
-.\Install-ActPowerCLI.ps1: File C:\Users\av\Downloads\ActPowerCLI-main\ActPowerCLI-main\Install-ActPowerCLI.ps1 cannot be loaded. 
-The file C:\Users\av\Downloads\ActPowerCLI-main\ActPowerCLI-PS7-main\Install-ActPowerCLI.ps1 is not digitally signed. You cannot run this script on the current system. 
-For more information about running scripts and setting execution policy, see about_Execution_Policies at https://go.microsoft.com/fwlink/?LinkID=135170.
-```
-Then  run this command:
-```
-Get-ChildItem .\Install-ActPowerCLI.ps1 | Unblock-File
-```
-Then re-run the installer.  The installer will unblock all the other files.
 
 ## Usage
 
