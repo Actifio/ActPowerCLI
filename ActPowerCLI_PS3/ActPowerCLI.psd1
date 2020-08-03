@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = 'AGMPowerCLI.psm1'
+RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
 ModuleVersion = '10.0.0.731'
