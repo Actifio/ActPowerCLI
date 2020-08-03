@@ -71,7 +71,7 @@ function CreateModuleContent
   {
     $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI_PS3\* -Recurse | Unblock-File
     $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
-    $null = Copy-Item $PSScriptRoot\ActPowerCLI* $InstallPath -Force -Recurse -ErrorAction Stop
+    $null = Copy-Item $PSScriptRoot\ActPowerCLI_PS3\* $InstallPath -Force -Recurse -ErrorAction Stop
     $null = Test-Path -Path $InstallPath -ErrorAction Stop
     
     Write-Host -Object "`nInstallation successful."
