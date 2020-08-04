@@ -15,7 +15,14 @@ function GetPSModulePath
     }
     else 
     {
-        return $env:PSModulePath.Split(';')
+        if ( $hostVersionInfo -lt "7" )
+        {
+            return $env:PSModulePath.Split(';')
+        }
+        else 
+        {
+            return $env:PSModulePath.Split(';') | Select-String -Pattern "WindowsPowerShell" -NotMatch
+        }
     }
 
 }
