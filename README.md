@@ -52,6 +52,14 @@ Get-ChildItem .\Install-ActPowerCLI.ps1 | Unblock-File
 ```
 Then re-run the installer.  The installer will unblock all the other files.
 
+
+If the install fails with:
+```
+New-Item : Access to the path 'ActPowerCLI' is denied.
+```
+Then you need to start your PowerShell session as Administrator.
+
+
 ### All Supported Versions of PowerShell - Upgrade from GitHub download
 
 To upgrade any existing install, follow the Install instructions above. 
