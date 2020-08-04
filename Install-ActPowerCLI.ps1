@@ -11,7 +11,7 @@ function GetPSModulePath
     $platform=$PSVersionTable.platform
 	if ( $platform -match "Unix" )
 	{
-		return $env:PSModulePath.Split(':')
+        return $env:PSModulePath.Split(':')
     }
     else 
     {
@@ -21,7 +21,7 @@ function GetPSModulePath
         }
         else 
         {
-            return $env:PSModulePath.Split(';') | Select-String -Pattern "WindowsPowerShell" -NotMatch
+            return $env:PSModulePath.Split(';') -notmatch "WindowsPowerShell"
         }
     }
 
