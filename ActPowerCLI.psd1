@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.22'
+ModuleVersion = '10.0.1.23'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.23] 2020-08-16
+        udstask testconnection commands were having .result stripped off.  This change also means udstask commands may return a status.
+
         ## [10.0.1.22] 2020-08-03
         Added sort order logic to bring order to the output
         Handle apps with space in their names

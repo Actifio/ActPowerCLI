@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.22'
+# ModuleVersion = '10.0.1.23'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
 {
@@ -1349,7 +1349,21 @@ Function Get-ActAPIDataPost
         }
         else
         {
-            $resp.result
+            if ($resp.result)
+            {
+                if (($resp.result).GetType().Name -eq "String")
+                {
+                    $resp
+                }
+                else 
+                {
+                    $resp.result
+                }
+            }
+            else 
+            {
+                $resp    
+            }
         }
     }
 }
