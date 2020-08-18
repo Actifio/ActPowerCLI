@@ -124,14 +124,14 @@ $hostVersionInfo = (get-host).Version.Major
 # print version we are installing
 if ( $hostVersionInfo -lt "7" )
 {
-    Import-LocalizedData -BaseDirectory .\ActPowerCLI_PS3 -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
+    Import-LocalizedData -BaseDirectory $PSScriptRoot\ActPowerCLI_PS3 -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
     Write-host 'Detected PowerShell version:   ' $hostVersionInfo
     Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
     Write-host ""
 }
 else 
 {
-    Import-LocalizedData -BaseDirectory .\ -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
+    Import-LocalizedData -BaseDirectory $PSScriptRoot\ -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
     Write-host 'Detected PowerShell version:   ' $hostVersionInfo
     Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
     Write-host ""
