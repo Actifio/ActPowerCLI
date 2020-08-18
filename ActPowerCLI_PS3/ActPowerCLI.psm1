@@ -3,7 +3,7 @@ Function setModulePath()
 {
 	# module can be installed anywhere. in users homedir or in the system module path
 	# lets find the location and return it so that the help test will work nicely.
-	return (Get-Module -ListAvailable ActPowerCLI).ModuleBase;
+	return (Get-Module -ListAvailable ActPowerCLI).ModuleBase[0];
 }
 
 <#
