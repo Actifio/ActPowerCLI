@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.0.732'
+ModuleVersion = '10.0.0.733'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.0.733] 2020-08-31
+        Handle case where only one install hits errors because its looking for two
+
         ## [10.0.0.732] 2020-08-18
         Prevent argument completion error at connect-act when there are multiple installs
 

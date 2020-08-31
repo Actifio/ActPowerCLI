@@ -3,7 +3,15 @@ Function setModulePath()
 {
 	# module can be installed anywhere. in users homedir or in the system module path
 	# lets find the location and return it so that the help test will work nicely.
-	return (Get-Module -ListAvailable ActPowerCLI).ModuleBase[0];
+	$actmodules = Get-Module -ListAvailable ActPowerCLI
+	if ($actmodules.count -eq 1)
+	{
+		return (Get-Module -ListAvailable ActPowerCLI).ModuleBase;
+	}
+	else 
+	{
+		return (Get-Module -ListAvailable ActPowerCLI).ModuleBase[0];
+	}
 }
 
 <#
