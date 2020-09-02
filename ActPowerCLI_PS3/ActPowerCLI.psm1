@@ -1006,7 +1006,7 @@ Function getCertificateDetails($acthost)
     }
 }
 
-Function Get-ActifioLogs  ([int]$tail)
+Function Get-ActifioLogs ([int]$tail)
 {
     <#
     .SYNOPSIS
@@ -1035,4 +1035,4 @@ Function Get-ActifioLogs  ([int]$tail)
 
 }
 
-Export-ModuleMember -Alias * -Function udsinfo,udstask,usvcinfo,usvctask,connect-act,save-actpassword,get-sargreport,Disconnect-Act -Cmdlet Get-LastSnap,Get-Privileges,Get-ActifioLogs,Get-ActAppID -Variable *
+Export-ModuleMember -Alias * -Function udsinfo,udstask,usvcinfo,usvctask,connect-act,save-actpassword,get-sargreport,Get-ActifioLogs,Disconnect-Act -Cmdlet Get-LastSnap,Get-Privileges,Get-ActifioLogs,Get-ActAppID -Variable *
