@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.23'
+# ModuleVersion = '10.0.1.24'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
 {
@@ -1526,4 +1526,33 @@ Function Get-LastSnap([string]$app, [string]$jobclass, [int]$backupinlast)
     {
         $backups
     }
+}
+
+Function Get-ActifioLogs  ([int]$tail)
+{
+    <#
+    .SYNOPSIS
+    Tails the Connector logs on a Windows host
+
+    .EXAMPLE
+    Get-ActifioLogs  
+
+    .EXAMPLE
+    Get-ActifioLogs -tail 100
+
+    Shows the previous 100 lines of logs and then begins tailing
+
+    .DESCRIPTION
+    A function to tail the Connector Logs of the Actifio UDSAgent process
+
+    #>
+    
+    if (!($tail))
+    { 
+        $tail = 10
+    }
+
+
+    Get-Content -Path "C:\Program Files\Actifio\log\UDSAgent.log" -Tail $tail -Wait
+
 }

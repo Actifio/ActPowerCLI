@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.0.733'
+ModuleVersion = '10.0.0.734'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.0.734] 2020-09-02
+        Add Get-ActifioLogs
+
         ## [10.0.0.733] 2020-08-31
         Handle case where only one install hits errors because its looking for two
 

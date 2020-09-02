@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.23'
+ModuleVersion = '10.0.1.24'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ PowerShellVersion = '7.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Get-SARGReport','Set-ActAPILimit','Get-Privileges','Get-ActAppID','Get-LastSnap','reportlist')
+FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Get-SARGReport','Set-ActAPILimit','Get-Privileges','Get-ActAppID','Get-LastSnap','reportlist','Get-ActifioLogs')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.24] 2020-09-02
+        Add Get-ActifioLogs
+
         ## [10.0.1.23] 2020-08-16
         udstask testconnection commands were having .result stripped off.  This change also means udstask commands may return a status.
 

@@ -1006,4 +1006,33 @@ Function getCertificateDetails($acthost)
     }
 }
 
-Export-ModuleMember -Alias * -Function udsinfo,udstask,usvcinfo,usvctask,connect-act,save-actpassword,get-sargreport,Disconnect-Act -Cmdlet Get-LastSnap,Get-Privileges,Get-ActAppID -Variable *
+Function Get-ActifioLogs  ([int]$tail)
+{
+    <#
+    .SYNOPSIS
+    Tails the Connector logs on a Windows host
+
+    .EXAMPLE
+    Get-ActifioLogs  
+
+    .EXAMPLE
+    Get-ActifioLogs -tail 100
+
+    Shows the previous 100 lines of logs and then begins tailing
+
+    .DESCRIPTION
+    A function to tail the Connector Logs of the Actifio UDSAgent process
+
+    #>
+    
+    if (!($tail))
+    { 
+        $tail = 10
+    }
+
+
+    Get-Content -Path "C:\Program Files\Actifio\log\UDSAgent.log" -Tail $tail -Wait
+
+}
+
+Export-ModuleMember -Alias * -Function udsinfo,udstask,usvcinfo,usvctask,connect-act,save-actpassword,get-sargreport,Disconnect-Act -Cmdlet Get-LastSnap,Get-Privileges,Get-ActifioLogs,Get-ActAppID -Variable *
