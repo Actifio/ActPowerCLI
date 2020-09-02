@@ -1528,7 +1528,7 @@ Function Get-LastSnap([string]$app, [string]$jobclass, [int]$backupinlast)
     }
 }
 
-Function Get-ActifioLogs  ([int]$tail)
+Function Get-ActifioLogs ([int]$tail)
 {
     <#
     .SYNOPSIS
