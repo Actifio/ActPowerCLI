@@ -706,3 +706,22 @@ Ideally delete all copies and install just the latest to a single location.
 ### Out-GridView for Mac
 
 We have found that Out-GridView on Mac does not work for most report(SARG_ commands.   This is a bug in OGV and not the report,  as OGV with PS7 on Windows works fine.   As an alternative download and use Out-HTMLview  on Mac
+
+# Tailing the UDSAgent.log file
+
+On Unix hosts, we can follow the UDSAgent.log file by using: 
+```
+tail -f /var/act/log/UDSAgent.log
+```
+To do this in Windows, open a PowerShell window and run this command:
+```
+Get-Content -Path "C:\Program Files\Actifio\log\UDSAgent.log" -Tail 10 -Wait
+```
+This will show the last 10 lines of the logs and then tail the log.
+
+We have added this as a function into our PowerShell Module.  So run this command for the same outcome:
+```
+Get-ActifioLogs
+```
+
+
