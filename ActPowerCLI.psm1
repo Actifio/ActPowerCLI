@@ -100,12 +100,8 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     don't want to see a successful login message. To validate the connection, check
     for variable $ACTSESSIONID
     #>
-
-    #  these are not needed for PS7, but are for PS5
   
     
-
-
 
     # max objects returned will be unlimited.   Otherwise user can supply a limit
     if (!($actmaxapilimit))
@@ -164,8 +160,8 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
                 if ( $hostVersionInfo -lt "6" )
                 {
                     psfivecerthandler
-                    $global:IGNOREACTCERTS = "n"
-                    $ignorecertsnow = "n"
+                    #$global:IGNOREACTCERTS = "n"
+                    #$ignorecertsnow = "n"
                 }
                 else 
                 {
@@ -187,8 +183,8 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         if ( $hostVersionInfo -lt "6" )
         {
             psfivecerthandler
-            $global:IGNOREACTCERTS = "n"
-            $ignorecertsnow = "n"
+ #           $global:IGNOREACTCERTS = "n"
+  #          $ignorecertsnow = "n"
         }
         else 
         {
@@ -243,7 +239,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     $RestError = $null
     Try
     {
-        if ($IGNOREACTCERTS -eq "y")
+        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
         }
@@ -294,13 +290,13 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         # since login was successful, lets create some environment variables about the Appliance we connected to
         Try 
         {
-            if ($IGNOREACTCERTS -eq "n")
+            if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
             {
-                $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/fullversion
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
             }
             else 
             {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+                $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/fullversion
             }
         } 
         Catch 
@@ -376,7 +372,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $RestError = $null
     Try
     {
-        if ($IGNOREACTCERTS -eq "y")
+        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
         }
@@ -651,7 +647,7 @@ function New-SARGFuncs()
     $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
     Try
     {  
-        if ($IGNOREACTCERTS -eq "y")
+        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
         {  
             $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
         }
@@ -1363,7 +1359,7 @@ Function Get-ActAPIData
     {
         Try    
         {
-            if ($IGNOREACTCERTS -eq "y")
+            if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
             {  
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
             }
@@ -1400,7 +1396,7 @@ Function Get-ActAPIDataPost
     {
         Try    
         {
-            if ($IGNOREACTCERTS -eq "y")
+            if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
             }
