@@ -1,5 +1,42 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.24'
+# ModuleVersion = '10.0.1.25'
+
+function psfivecerthandler
+{
+    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
+{
+$certCallback = @"
+    using System;
+    using System.Net;
+    using System.Net.Security;
+    using System.Security.Cryptography.X509Certificates;
+    public class ServerCertificateValidationCallback
+    {
+        public static void Ignore()
+        {
+            if(ServicePointManager.ServerCertificateValidationCallback ==null)
+            {
+                ServicePointManager.ServerCertificateValidationCallback += 
+                    delegate
+                    (
+                        Object obj, 
+                        X509Certificate certificate, 
+                        X509Chain chain, 
+                        SslPolicyErrors errors
+                    )
+                    {
+                        return true;
+                    };
+            }
+        }
+    }
+"@
+    Add-Type $certCallback
+    }
+            
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+            [ServerCertificateValidationCallback]::Ignore()
+}
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
 {
@@ -64,6 +101,11 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     for variable $ACTSESSIONID
     #>
 
+    #  these are not needed for PS7, but are for PS5
+  
+    
+
+
 
     # max objects returned will be unlimited.   Otherwise user can supply a limit
     if (!($actmaxapilimit))
@@ -118,9 +160,19 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
             # based on the action, do the right thing.
             if ( $certaction -eq "i" -or $certaction -eq "I" )
             {
-                # set IGNOREACTCERTS so that we ignore self-signed certs
-                $global:IGNOREACTCERTS = "y"
-                $ignorecertsnow = "y"
+                $hostVersionInfo = (get-host).Version.Major
+                if ( $hostVersionInfo -lt "6" )
+                {
+                    psfivecerthandler
+                    $global:IGNOREACTCERTS = "n"
+                    $ignorecertsnow = "n"
+                }
+                else 
+                {
+                    # set IGNOREACTCERTS so that we ignore self-signed certs
+                    $global:IGNOREACTCERTS = "y"
+                    $ignorecertsnow = "y"
+                }
             }
             elseif ( $certaction -eq "c" -or $certaction -eq "C" ) 
             {
@@ -131,7 +183,17 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     else
     {
-        $global:IGNOREACTCERTS = "y"
+        $hostVersionInfo = (get-host).Version.Major
+        if ( $hostVersionInfo -lt "6" )
+        {
+            psfivecerthandler
+            $global:IGNOREACTCERTS = "n"
+            $ignorecertsnow = "n"
+        }
+        else 
+        {
+            $global:IGNOREACTCERTS = "y"
+        }
     }
 
     # we need a user name
@@ -174,7 +236,8 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     $vendorkey = "ActPowerCLI-" + $moduledetails.version.ToString()
 
     # password needs to be sent as base64 per API Guide
-    $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
+    $UnsecurePassword = [System.Net.NetworkCredential]::new("", $passwordenc).Password
+    # $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
     $Header = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($vdpuser+":"+$UnsecurePassword))}
     $Url = "https://$acthost/actifio/api/login?name=$vdpuser&password=$UnsecurePassword&vendorkey=$vendorkey"
     $RestError = $null
@@ -231,7 +294,14 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         # since login was successful, lets create some environment variables about the Appliance we connected to
         Try 
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+            if ($IGNOREACTCERTS -eq "n")
+            {
+                $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/fullversion
+            }
+            else 
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+            }
         } 
         Catch 
         { 
