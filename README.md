@@ -13,8 +13,8 @@ It will be handled automatically by the included installer.
 
 The installer will install one of two versions:
 
-* ActPowerCLI Version 10.0.1.x  is for PowerShell 5 and 7 and can be installed from the GitHub zip file or PowerShell Gallery
-* ActPowerCLI Version 10.0.0.x  is for PowerShell 4 and can be installed from the GitHub zip file
+* ActPowerCLI Version 10.0.1.x  is for Windows PowerShell 5 and PowerShell 7 and can be installed from the GitHub zip file or PowerShell Gallery
+* ActPowerCLI Version 10.0.0.x  is for Windows PowerShell 4 and can be installed from the GitHub zip file
 
 Note this module has not been tested with PowerShell 6.   
 
