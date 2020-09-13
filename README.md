@@ -16,6 +16,8 @@ The installer will install one of two versions:
 * ActPowerCLI Version 10.0.1.x  is for PowerShell 5 and 7 and can be installed from the GitHub zip file or PowerShell Gallery
 * ActPowerCLI Version 10.0.0.x  is for PowerShell 4 and can be installed from the GitHub zip file
 
+Note this module has not been tested with PowerShell 6.   
+
 #### What about Windows PowerShell 3?
 
 It should work with Windows PowerShell Version 3 on the Windows Operating System that have .NET 4.5 installed, but no further testing is being done on this version
