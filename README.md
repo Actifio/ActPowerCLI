@@ -4,8 +4,8 @@ A Powershell module to manage Actifio Appliances
 
 ## What versions of PowerShell and Operating Systems will this module work with?
 
-* It will work with Windows PowerShell Version 4 and 5 on the Windows Operating System that have .NET 4.5 installed
-* It will work with PowerShell Version 6 on the Windows Operating System that have .NET 4.5 installed
+* It will work with Windows PowerShell Version 4 that have .NET 4.5 installed
+* It will work with Windows PowerShell Version 5 (no requirement for .NET)
 * It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems.
 
 In this repository are two separate versions of ActPowerCLI, but you don't need to work out which one to use.
@@ -13,8 +13,8 @@ It will be handled automatically by the included installer.
 
 The installer will install one of two versions:
 
-* ActPowerCLI Version 10.0.1.x  is for PowerShell 7 and above and can be installed from the GitHub zip file or PowerShell Gallery
-* ActPowerCLI Version 10.0.0.x  is for PowerShell 6 and below and can be installed from the GitHub zip file
+* ActPowerCLI Version 10.0.1.x  is for PowerShell 5 and 7 and can be installed from the GitHub zip file or PowerShell Gallery
+* ActPowerCLI Version 10.0.0.x  is for PowerShell 4 and can be installed from the GitHub zip file
 
 #### What about Windows PowerShell 3?
 
@@ -253,7 +253,7 @@ Disconnect-Act
 #### Check your versions 
 ```
 $host.version        (need version 3.0 to 5.1)
-$PSVersionTable.CLRVersion       (need .NET 4.0 or above)
+$PSVersionTable.CLRVersion       (need .NET 4.0 or above if using Windows PowerShell 4)
 ```
 #### Check your plugins
 ```
