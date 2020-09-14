@@ -340,6 +340,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         {
             $global:ACTSORTOVERRIDE = "n"   
         }
+        
         # now we create functions for SARG
         New-SARGFuncs
     }
@@ -1688,3 +1689,4 @@ Function Get-ActifioLogs ([int]$tail)
     Get-Content -Path "C:\Program Files\Actifio\log\UDSAgent.log" -Tail $tail -Wait
 
 }
+
