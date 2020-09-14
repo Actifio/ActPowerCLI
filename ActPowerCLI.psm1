@@ -539,7 +539,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                         $namepayload = "'" + $trimm.substring(2) + "'"
                         $sargopts =  $sargopts + "&" + "$firstword" + "=" + [System.Web.HttpUtility]::UrlEncode($namepayload) 
                         # test if we have a matching sort order parm
-                        $sargsortordertest = $sargreportsortorder = Get-SARGSortOrder -parmletter $firstword -reportname $reportname
+                        $sargsortordertest = Get-SARGSortOrder -parmletter $firstword -reportname $reportname
                         if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
                         {
                             $sargreportsortorder = $sargsortordertest
