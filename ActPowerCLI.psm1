@@ -239,7 +239,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     $RestError = $null
     Try
     {
-        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
+        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
         }
@@ -290,7 +290,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         # since login was successful, lets create some environment variables about the Appliance we connected to
         Try 
         {
-            if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
+            if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
             {
                 $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
             }
@@ -372,7 +372,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $RestError = $null
     Try
     {
-        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
+        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
         }
@@ -647,7 +647,7 @@ function New-SARGFuncs()
     $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
     Try
     {  
-        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
+        if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {  
             $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
         }
@@ -1357,28 +1357,55 @@ Function Get-ActAPIData
 
     if ($args)
     {
-        Try    
+
+        if ( $((get-host).Version.Major) -gt 5 )
         {
-            if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
-            {  
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+            Try    
+            {
+                if ($IGNOREACTCERTS -eq "y") 
+                {  
+                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+                }
+                else 
+                {
+                    $resp = Invoke-RestMethod -Method Get -Uri "$args" 
+                }
             }
-            else 
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                Test-ActJSON $RestError
+            }
+            else
+            {
+                $resp.result
+            }
+        }
+        else 
+        {
+            Try    
             {
                 $resp = Invoke-RestMethod -Method Get -Uri "$args" 
             }
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            $resp.result
+            Catch
+            {
+                $result = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($result)
+                $reader.BaseStream.Position = 0
+                $reader.DiscardBufferedData()
+                $responseBody = $reader.ReadToEnd();
+            }
+            if ($responseBody) 
+            {
+                $responseBody | ConvertFrom-Json
+            }
+            else
+            {
+                $resp.result
+            }
         }
     }
 }
@@ -1391,44 +1418,83 @@ Function Get-ActAPIDataPost
     This is an internal function used to check fetch data from the appliance.  You do not use this function directly
     #>
 
-
     if ($args)
     {
-        Try    
+        if ( $((get-host).Version.Major) -gt 5 )
         {
-            if ( ($IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 6) )
+            Try    
             {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
-            }
-            else 
-            {
-                $resp = Invoke-RestMethod -Method Post -Uri "$args" 
-            }
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            if ($resp.result)
-            {
-                if (($resp.result).GetType().Name -eq "String")
+                if ($IGNOREACTCERTS -eq "y")  
                 {
-                    $resp
+                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
                 }
                 else 
                 {
-                    $resp.result
+                    $resp = Invoke-RestMethod -Method Post -Uri "$args" 
                 }
             }
-            else 
+            Catch
             {
-                $resp    
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                Test-ActJSON $RestError
+            }
+            else
+            {
+                if ($resp.result)
+                {
+                    if (($resp.result).GetType().Name -eq "String")
+                    {
+                        $resp
+                    }
+                    else 
+                    {
+                        $resp.result
+                    }
+                }
+                else 
+                {
+                    $resp    
+                }
+            }
+        }
+        else 
+        {
+            Try    
+            {
+                $resp = Invoke-RestMethod -Method Post -Uri "$args" 
+            }
+            Catch
+            {
+                $result = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($result)
+                $reader.BaseStream.Position = 0
+                $reader.DiscardBufferedData()
+                $responseBody = $reader.ReadToEnd();
+            }
+            if ($responseBody) 
+            {
+                $responseBody | ConvertFrom-Json
+            }
+            else
+            {
+                if ($resp.result)
+                {
+                    if (($resp.result).GetType().Name -eq "String")
+                    {
+                        $resp
+                    }
+                    else 
+                    {
+                        $resp.result
+                    }
+                }
+                else 
+                {
+                    $resp    
+                }
             }
         }
     }
@@ -1439,7 +1505,7 @@ function Get-ActErrorMessage ([string]$messagetoprint)
 {
 
         $acterror = @()
-        $acterrorcol = "" | Select errormessage
+        $acterrorcol = "" | Select-Object errormessage
         $acterrorcol.errormessage = "$messagetoprint"
         $acterror = $acterror + $acterrorcol
         $acterror
