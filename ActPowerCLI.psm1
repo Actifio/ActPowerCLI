@@ -389,17 +389,17 @@ function Disconnect-Act([switch][alias("q")]$quiet)
         else
         { 
             Write-Host "Success!"
-            Remove-Item env:acthost
-            Remove-Item env:ACTVERSION
-            Remove-Item env:ACTPLATFORM
-            Remove-Item env:ACTSESSIONID
-            Remove-Item env:ACTPRIVILEGES
-            Remove-Item env:ACTSORTOVERRIDE
-            Remove-Item env:actmaxapilimit
-            Remove-Item env:IGNOREACTCERTS
-            clear-variable ACTSORTORDER -Scope Global
         }
     }
+    $env:acthost = $null
+    $env:ACTVERSION = $null
+    $env:ACTPLATFORM = $null
+    $env:ACTSESSIONID = $null
+    $env:ACTPRIVILEGES = $null
+    $env:ACTSORTOVERRIDE = $null
+    $env:actmaxapilimit = $null
+    $env:IGNOREACTCERTS = $null
+    $global:ACTSORTORDER = $null
 }
 
 
