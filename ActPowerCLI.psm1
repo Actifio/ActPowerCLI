@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.24'
+# ModuleVersion = '10.0.1.25'
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
 {
@@ -420,7 +420,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                 { 
                     $helprequest = "y"
                 }
-                $sargsortordertest = $sargreportsortorder = Get-SARGSortOrder -parmletter $trimm -reportname $reportname
+                $sargsortordertest = Get-SARGSortOrder -parmletter $trimm -reportname $reportname
                 if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
                 {
                     $sargreportsortorder = $sargsortordertest
@@ -472,7 +472,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                         $namepayload = "'" + $trimm.substring(2) + "'"
                         $sargopts =  $sargopts + "&" + "$firstword" + "=" + [System.Web.HttpUtility]::UrlEncode($namepayload) 
                         # test if we have a matching sort order parm
-                        $sargsortordertest = $sargreportsortorder = Get-SARGSortOrder -parmletter $firstword -reportname $reportname
+                        $sargsortordertest = Get-SARGSortOrder -parmletter $firstword -reportname $reportname
                         if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
                         {
                             $sargreportsortorder = $sargsortordertest
