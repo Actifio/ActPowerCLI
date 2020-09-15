@@ -33,7 +33,7 @@ $certCallback = @"
 "@
     Add-Type $certCallback
     }
-            
+            $env:CUR_PROTS = [System.Net.ServicePointManager]::SecurityProtocol
             [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
             [ServerCertificateValidationCallback]::Ignore()
 }
@@ -400,6 +400,9 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $env:actmaxapilimit = $null
     $env:IGNOREACTCERTS = $null
     $global:ACTSORTORDER = $null
+    # Set the security protocol back to the old defaults
+	[Net.ServicePointManager]::SecurityProtocol = $env:CUR_PROTS
+	$env:CUR_PROTS = $null
 }
 
 
