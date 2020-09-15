@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.25'
+ModuleVersion = '10.0.1.26'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -108,8 +108,14 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
-        ## [10.0.1.25] 2020-09-13
+        ## [10.0.1.26] 2020-09-13
         Updates to allow this version to run on PS5.  
+
+        ## [10.0.1.25] 2020-09-15
+        Fix typo in SARG sort order logic that was making some searched find nothing
+ 
+        ## [10.0.1.24] 2020-09-02
+        Add Get-ActifioLogs
 
         ## [10.0.1.24] 2020-09-02
         Add Get-ActifioLogs
