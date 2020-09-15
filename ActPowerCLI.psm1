@@ -401,8 +401,11 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $env:IGNOREACTCERTS = $null
     $global:ACTSORTORDER = $null
     # Set the security protocol back to the old defaults
-	[Net.ServicePointManager]::SecurityProtocol = $env:CUR_PROTS
-	$env:CUR_PROTS = $null
+    if ($env:CUR_PROTS) 
+    {
+        [Net.ServicePointManager]::SecurityProtocol = $env:CUR_PROTS
+        $env:CUR_PROTS = $null
+    }
 }
 
 
