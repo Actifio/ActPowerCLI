@@ -487,7 +487,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                 { 
                     $helprequest = "y"
                 }
-                $sargsortordertest = $sargreportsortorder = Get-SARGSortOrder -parmletter $trimm -reportname $reportname
+                $sargsortordertest = Get-SARGSortOrder -parmletter $trimm -reportname $reportname
                 if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
                 {
                     $sargreportsortorder = $sargsortordertest

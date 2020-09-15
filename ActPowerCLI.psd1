@@ -109,7 +109,7 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = '
         ## [10.0.1.25] 2020-09-13
-        Allow PS7 version to run on PS5
+        Updates to allow this version to run on PS5.  
 
         ## [10.0.1.24] 2020-09-02
         Add Get-ActifioLogs
