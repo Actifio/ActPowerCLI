@@ -1,11 +1,10 @@
 # # Version number of this module.
 # ModuleVersion = '10.0.1.26'
-
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
-{
-$certCallback = @"
+    {
+    $certCallback = @"  
     using System;
     using System.Net;
     using System.Net.Security;
@@ -33,9 +32,11 @@ $certCallback = @"
 "@
     Add-Type $certCallback
     }
-            $env:CUR_PROTS = [System.Net.ServicePointManager]::SecurityProtocol
-            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
-            [ServerCertificateValidationCallback]::Ignore()
+    [ServerCertificateValidationCallback]::Ignore()
+    
+    # ensure TLS12 is in use.  We set it back when disconnect-act is run
+    $env:CUR_PROTS = [System.Net.ServicePointManager]::SecurityProtocol
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 }
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
