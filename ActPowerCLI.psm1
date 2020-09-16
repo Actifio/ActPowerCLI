@@ -493,7 +493,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                     $helprequest = "y"
                 }
                 $sargsortordertest = Get-SARGSortOrder -parmletter $trimm -reportname $reportname
-                if ( ($null -ne $sargsortordertest) -and ($sargsortordertest.sortorder -ne "") )
+                if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
                 {
                     $sargreportsortorder = $sargsortordertest
                 }
@@ -525,7 +525,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                             }
                             # test if we have a matching sort order parm
                             $sargsortordertest = Get-SARGSortOrder -parmletter $blob -reportname $reportname
-                            if ( ($null -ne $sargsortordertest) -and ($sargsortordertest.sortorder -ne "") )
+                            if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
                             {
                                 $sargreportsortorder = $sargsortordertest
                             }
@@ -545,7 +545,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                         $sargopts =  $sargopts + "&" + "$firstword" + "=" + [System.Web.HttpUtility]::UrlEncode($namepayload) 
                         # test if we have a matching sort order parm
                         $sargsortordertest = Get-SARGSortOrder -parmletter $firstword -reportname $reportname
-                        if ( ($null -ne $sargsortordertest) -and ($sargsortordertest.sortorder -ne "") )
+                        if ( ($sargsortordertest -ne $null) -and ($sargsortordertest.sortorder -ne "") )
                         {
                             $sargreportsortorder = $sargsortordertest
                         }
@@ -683,7 +683,7 @@ function New-SARGFuncs()
     if ($env:ACTSORTOVERRIDE -eq "n")
     {
         $sortorderfetch = reportlist -s
-        if ($null -ne $sortorderfetch.SortOrder)
+        if ($sortorderfetch.SortOrder -ne $null)
         {
             $global:ACTSORTORDER = $sortorderfetch
         }
