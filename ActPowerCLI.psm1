@@ -477,7 +477,8 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
         $sargsortordertest =  $null
         $trimm = $null
         # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  We dump blank lines
-        $dashsep = $sargparms.Split("-") -notmatch '^\s*$'
+        $sargparms = " " + "$sargparms"
+        $dashsep = $sargparms -split " -" -notmatch '^\s*$'
         foreach ($line in $dashsep) 
         {
             # remove any whitespace at the end
@@ -811,7 +812,7 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
     if ($args) 
     {
         $taskparms = " " + "$args"
-        $dashsep = $taskparms.Split("-") -notmatch '^\s*$'
+        $dashsep = $taskparms -split " -" -notmatch '^\s*$'
         foreach ($line in $dashsep) 
         {
             # remove any whitespace at the end
@@ -993,7 +994,7 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     if ($args) 
     {
         $taskparms = " " + "$args"
-        $dashsep = $taskparms.Split("-") -notmatch '^\s*$'
+        $dashsep = $taskparms -split " -" -notmatch '^\s*$'
         foreach ($line in $dashsep) 
         {
             # remove any whitespace at the end
@@ -1137,7 +1138,7 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
     if ($args) 
     {
         $taskparms = " " + "$args"
-        $dashsep = $taskparms.Split("-") -notmatch '^\s*$'
+        $dashsep = $taskparms -split " -" -notmatch '^\s*$'
         foreach ($line in $dashsep) 
         {
             # remove any whitespace at the end
@@ -1238,7 +1239,7 @@ Function usvctask([string]$subcommand, [string]$argument)
      if ($args) 
      {
          $taskparms = " " + "$args"
-         $dashsep = $taskparms.Split("-") -notmatch '^\s*$'
+         $dashsep = $taskparms -split " -" -notmatch '^\s*$'
          foreach ($line in $dashsep) 
          {
              # remove any whitespace at the end
