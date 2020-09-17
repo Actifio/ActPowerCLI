@@ -571,7 +571,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
         {
             $Url = "https://$env:acthost/actifio/api/report/$reportname" + "?" + "sessionid=$env:ACTSESSIONID"  + "$sargopts"
             $sargoutput = Get-ActAPIData  $Url
-            if (($sargoutput).errorcode -eq $null)
+            if (($sargoutput).errormessage -eq $null)
             {
                 # if we got here we must have output we can sort,  if we don't have a sort order yet, this is our last chance to get one
                 if ($sargreportsortorder -eq $null)
@@ -599,7 +599,8 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 	{
         $Url = "https://$env:acthost/actifio/api/report/$reportname" + "?sessionid=$env:ACTSESSIONID" 
         $sargoutput = Get-ActAPIData  $Url
-        if (($sargoutput).errorcode -eq $null)
+
+        if (($sargoutput).errormessage -eq $null)
         {
             $sargreportsortorder = Get-SARGSortOrder -parmletter "-" -reportname $reportname
             if (($sargreportsortorder.SortOrder -eq "") -or ($sargreportsortorder.SortOrder -eq $null) )
