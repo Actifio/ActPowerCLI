@@ -1042,7 +1042,7 @@ Function Save-ActPassword([string]$filename)
 
 
  # function to imitate usvcinfo so that users don't need to remember each individual function
-Function usvcinfo([string]$subcommand, [string]$filtervalue)
+Function usvcinfo([string]$subcommand)
 {
     <#
     .SYNOPSIS
@@ -1089,27 +1089,15 @@ Function usvcinfo([string]$subcommand, [string]$filtervalue)
     }
     # if we got to here we are going to try a udsinfo command
     $udsopts = $null
-    $udsopts = $null
+
     if ($args) 
     {
         $udsopts = generatepayload($args)
     }
     # we proceed to try and run the command
-    if ($udsopts -and $filtervalue)
-    {
-        $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-        $Url = "https://$env:acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "$udsopts" 
-        Get-ActAPIData  $Url
-    }
-    elseif ($udsopts)
+    if ($udsopts)
     {
         $Url = "https://$env:acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "$udsopts" 
-        Get-ActAPIData  $Url
-    }
-    elseif ($filtervalue)
-    {
-        $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-        $Url = "https://$env:acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" 
         Get-ActAPIData  $Url
     }
     else
@@ -1160,7 +1148,6 @@ Function usvctask([string]$subcommand)
         return
     }
      # if we got to here we are going to try a usvctask command
-     $udsopts = $null
      $udsopts = $null
      if ($args) 
      {
