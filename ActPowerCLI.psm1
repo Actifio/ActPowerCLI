@@ -713,7 +713,7 @@ function New-SARGFuncs()
 
 # this function will imitate udsinfo so that users don't need to remember each individual function
 # handle request for udsinfo command
-Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
+Function udsinfo([string]$subcommand, [switch][alias("h")]$help)
 {
     <#
     .SYNOPSIS
@@ -811,30 +811,7 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
     $udsopts = $null
     if ($args) 
     {
-        $taskparms = " " + "$args"
-        $dashsep = $taskparms -split " -" -notmatch '^\s*$'
-        foreach ($line in $dashsep) 
-        {
-            # remove any whitespace at the end
-            $trimm = $line.TrimEnd()
-            # is there one word here or two?  If one word we have a single word parameter
-            $innerparmcount = $trimm | measure-object -word
-            if ( $innerparmcount.words -eq 1)
-            {
-                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-            }
-            else
-            {
-                $firstword = $trimm.Split([Environment]::Space) | Select-Object -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select-Object -skip 1
-                $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-            }
-        }
-    }
-    if ($argument)
-    {
-        $udsopts =  $udsopts + "&argument=" + "$argument"
+        $udsopts = generatepayload($args)
     }
 
     # we didn't get asked for help so lets grab the output
@@ -909,7 +886,7 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
 
 
 
-Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$help) 
+Function udstask ([string]$subcommand, [switch][alias("h")]$help) 
 {
     <#
     .SYNOPSIS
@@ -993,30 +970,7 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     $udsopts = $null
     if ($args) 
     {
-        $taskparms = " " + "$args"
-        $dashsep = $taskparms -split " -" -notmatch '^\s*$'
-        foreach ($line in $dashsep) 
-        {
-            # remove any whitespace at the end
-            $trimm = $line.TrimEnd()
-            # is there one word here or two?  If one word we have a single word parameter
-            $innerparmcount = $trimm | measure-object -word
-            if ( $innerparmcount.words -eq 1)
-            {
-                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-            }
-            else
-            {
-                $firstword = $trimm.Split([Environment]::Space) | Select-Object -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select-Object -skip 1
-                $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-            }
-        }
-    }
-    if ($argument)
-    {
-        $udsopts =  $udsopts + "&argument=" + "$argument"
+        $udsopts = generatepayload($args)
     }
     if ($udsopts) 
     {
@@ -1088,7 +1042,7 @@ Function Save-ActPassword([string]$filename)
 
 
  # function to imitate usvcinfo so that users don't need to remember each individual function
-Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
+Function usvcinfo([string]$subcommand, [string]$filtervalue)
 {
     <#
     .SYNOPSIS
@@ -1135,39 +1089,10 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
     }
     # if we got to here we are going to try a udsinfo command
     $udsopts = $null
+    $udsopts = $null
     if ($args) 
     {
-        $taskparms = " " + "$args"
-        $dashsep = $taskparms -split " -" -notmatch '^\s*$'
-        foreach ($line in $dashsep) 
-        {
-            # remove any whitespace at the end
-            $trimm = $line.TrimEnd()
-            # is there one word here or two?  If one word we have a single word parameter
-            $innerparmcount = $trimm | measure-object -word
-            if  ( $innerparmcount.words -eq 1) 
-            {
-                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-            }
-            else
-            {
-                $firstword = $trimm.Split([Environment]::Space) | Select-Object -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select-Object -skip 1
-                if ($firstword -eq "bytes")
-                {
-                    $udsopts =  $udsopts + "&" + "bytes=true" + "&argument=" + "$secondword"
-                }
-                else 
-                {
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-                }
-            }
-        }
-    }
-    if ($argument)
-    {
-        $udsopts =  $udsopts + "&argument=" + "$argument"
+        $udsopts = generatepayload($args)
     }
     # we proceed to try and run the command
     if ($udsopts -and $filtervalue)
@@ -1195,7 +1120,7 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
 }
 
 
-Function usvctask([string]$subcommand, [string]$argument)
+Function usvctask([string]$subcommand)
 {
     <#
     .SYNOPSIS
@@ -1236,42 +1161,10 @@ Function usvctask([string]$subcommand, [string]$argument)
     }
      # if we got to here we are going to try a usvctask command
      $udsopts = $null
+     $udsopts = $null
      if ($args) 
      {
-         $taskparms = " " + "$args"
-         $dashsep = $taskparms -split " -" -notmatch '^\s*$'
-         foreach ($line in $dashsep) 
-         {
-             # remove any whitespace at the end
-             $trimm = $line.TrimEnd()
-             # is there one word here or two?  If one word we have a single word parameter
-             $innerparmcount = $trimm | measure-object -word
-             if ( $innerparmcount.words -eq 1)
-             {
-                 $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-             }
-             else
-             {
-                $firstword = $trimm.Split([Environment]::Space) | Select-Object -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select-Object -skip 1
-                # if we see force and a value then the value is actually the argument and force has eaten it
-                if ($firstword -eq "force")
-                {
-                    $udsopts =  $udsopts + "&" + "force" + "=" + "true" 
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&argument" + "="  + "$Encodedsecondword"
-                }
-                else 
-                {
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-                }
-             }
-         }
-     }
-     if ($argument)
-     {
-         $udsopts =  $udsopts + "&argument=" + "$argument"
+         $udsopts = generatepayload($args)
      }
 
      if ($udsopts)
@@ -1690,3 +1583,68 @@ Function Get-ActifioLogs ([int]$tail)
 
 }
 
+Function generatepayload($arglist) 
+{
+	# holds if the previous argument analyzed was a param or a value
+	# so if someone passes -physicalrdm -nowait, this should be smart enough to		
+	# make it -physicalrdm true -nowait true
+	$currargtype = $null;
+	$prevargtype = $null;
+
+	# but if only one argument is passed, we should return "argument" = arg
+	if ( $arglist.Length -eq 1 )
+	{
+		if (  $arglist[0].ToString().StartsWith("-") -eq $false) 
+		{
+			return $udsopts = "&argument=" + $arglist[0]
+		} 
+		else
+		{
+			return $udsopts = $arglist[0] +  "=true"
+		}
+	} 
+
+	foreach ($arg in $arglist) 
+	{
+        # we handle force separately as it wont have a value and will steal the arg if we let it
+        if ($arg -eq "-force")
+        {
+            $currargtype = "value";
+            $udsopts = $udsopts + "&force=true"
+        } 
+        elseif ($arg.ToString().StartsWith("-")) 
+		{
+			# current argument is parameter
+			$currargtype = "param";
+
+			if ( $prevargtype -eq $currargtype -and $currargtype -eq "param" ) 
+			{
+				$udsopts = $udsopts + "true" 
+            }
+			$temparg = "&" + $arg.TrimStart("-")
+			$udsopts = $udsopts + $temparg + "=";
+		} 
+		else 
+		{
+			# current argument is a value
+			$currargtype = "value";
+			# if two values are together, then insert "argument" before the last one.
+			if ( $prevargtype -eq $currargtype -and $currargtype -eq "value" )
+			{
+				$udsopts = $udsopts + "&argument=" 
+            }
+            $namepayload =  $arg
+            $encodedpayload = [System.Web.HttpUtility]::UrlEncode($namepayload)
+			$udsopts = $udsopts + $encodedpayload 
+		}
+
+		$prevargtype = $currargtype;
+	}
+
+	# add a true if the last argument is a parameter 
+	if (( $arglist[-1].ToString().StartsWith("-") )  -and ($arg -ne "-force"))
+	{
+		$udsopts = $udsopts + "true" 
+	}
+	return $udsopts
+}
