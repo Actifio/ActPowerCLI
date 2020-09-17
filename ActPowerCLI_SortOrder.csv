@@ -37,7 +37,7 @@ reportfabric,sarg,Y,N,N,p,"NodeName,PortType,PortID,WWPN/MAC,nPortID,LinkState,L
 reportfabric,sarg,N,Y,N,-,*
 reportfabric,sarg,N,Y,N,i,"HostName,HostID,HostType,HostIQN,HostIPs,eth*,bond*"
 reportfabric,sarg,N,Y,N,p,"ClusterName,NodeName,InterfaceType,InterfaceName,Function,MAC/WWPN,State,LinkSpeed,IPAddress/FCID,IQN"
-reportfailedjobs,sarg,Y,Y,Y,-,"StartDate,JobName,JobClass,Status,PolicyName,HostName,AppName,AppID,Duration,ErrorCode,Message,RetryCommand"
+reportfailedjobs,sarg,Y,Y,Y,-,"StartDate,JobName,JobClass,Status,PolicyName,HostName,AppName,AppID,Duration,CaptureType,ErrorCode,Message,RetryCommand"
 reportfailedjobs,sarg,Y,Y,Y,f,"Startdate,JobClass,Status,PolicyName,HostName,AppName,AppID,ErrorCode,Count,Message,LastSuccessfulJob,LastDuration,LastJobName"
 reportfailedjobs,sarg,Y,Y,Y,x,"Startdate,JobClass,Status,PolicyName,HostName,AppName,AppID,ErrorCode,Count,Message,LastSuccessfulJob,LastDuration,LastJobName"
 reportfctree,sarg,Y,Y,Y,-,"AppType,HostName,AppName,AppID,MountedHost,Label,vDiskType,vDiskName,DiskPool,UsedCapacity(GB),TotalCapacity(GB),CreationDate,CompressionRatio,ImageName,ConsistencyDate"
