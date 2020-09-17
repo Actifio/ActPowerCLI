@@ -1,5 +1,43 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.25'
+# ModuleVersion = '10.0.1.26'
+function psfivecerthandler
+{
+    if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
+    {
+    $certCallback = @"  
+    using System;
+    using System.Net;
+    using System.Net.Security;
+    using System.Security.Cryptography.X509Certificates;
+    public class ServerCertificateValidationCallback
+    {
+        public static void Ignore()
+        {
+            if(ServicePointManager.ServerCertificateValidationCallback ==null)
+            {
+                ServicePointManager.ServerCertificateValidationCallback += 
+                    delegate
+                    (
+                        Object obj, 
+                        X509Certificate certificate, 
+                        X509Chain chain, 
+                        SslPolicyErrors errors
+                    )
+                    {
+                        return true;
+                    };
+            }
+        }
+    }
+"@
+    Add-Type $certCallback
+    }
+    [ServerCertificateValidationCallback]::Ignore()
+    
+    # ensure TLS12 is in use.  We set it back when disconnect-act is run
+    $env:CUR_PROTS = [System.Net.ServicePointManager]::SecurityProtocol
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+}
 
 function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
 {
@@ -61,24 +99,20 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     .PARAMETER quiet
     Optional. Suppresses all success messages. Use this in scripting when you
     don't want to see a successful login message. To validate the connection, check
-    for variable $ACTSESSIONID
+    for variable $env:ACTSESSIONID
     #>
-
+  
+    
 
     # max objects returned will be unlimited.   Otherwise user can supply a limit
     if (!($actmaxapilimit))
     {
-        $actmaxapilimit = 0
+        $env:actmaxapilimit = 0
     }
-    $global:actmaxapilimit = $actmaxapilimit
 
     if (!($acthost))
     {
     $acthost = Read-Host "IP or Name of VDP"
-    }
-    else
-    {
-        $acthost = $acthost
     }
     
     # if user didnt tell us at start to ignore cert, we need to test it
@@ -118,9 +152,16 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
             # based on the action, do the right thing.
             if ( $certaction -eq "i" -or $certaction -eq "I" )
             {
-                # set IGNOREACTCERTS so that we ignore self-signed certs
-                $global:IGNOREACTCERTS = "y"
-                $ignorecertsnow = "y"
+                $hostVersionInfo = (get-host).Version.Major
+                if ( $hostVersionInfo -lt "6" )
+                {
+                    psfivecerthandler
+                }
+                else 
+                {
+                    # set IGNOREACTCERTS so that we ignore self-signed certs
+                    $env:IGNOREACTCERTS = "y"
+                }
             }
             elseif ( $certaction -eq "c" -or $certaction -eq "C" ) 
             {
@@ -131,7 +172,15 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     else
     {
-        $global:IGNOREACTCERTS = "y"
+        $hostVersionInfo = (get-host).Version.Major
+        if ( $hostVersionInfo -lt "6" )
+        {
+            psfivecerthandler
+        }
+        else 
+        {
+            $env:IGNOREACTCERTS = "y"
+        }
     }
 
     # we need a user name
@@ -174,13 +223,14 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     $vendorkey = "ActPowerCLI-" + $moduledetails.version.ToString()
 
     # password needs to be sent as base64 per API Guide
-    $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
+    $UnsecurePassword = [System.Net.NetworkCredential]::new("", $passwordenc).Password
+    # $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
     $Header = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($vdpuser+":"+$UnsecurePassword))}
     $Url = "https://$acthost/actifio/api/login?name=$vdpuser&password=$UnsecurePassword&vendorkey=$vendorkey"
     $RestError = $null
     Try
     {
-        if ($IGNOREACTCERTS -eq "y")
+        if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
             $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
         }
@@ -217,12 +267,12 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     else
     {
-        $global:ACTPRIVILEGES = $resp.rights
-        $global:ACTSESSIONID = $resp.sessionid
-        $global:acthost = $acthost
+        $env:ACTPRIVILEGES = $resp.rights
+        $env:ACTSESSIONID = $resp.sessionid
+        $env:acthost = $acthost
         if ($printsession)
         {
-            Write-Host "$ACTSESSIONID" 
+            Write-Host "$env:ACTSESSIONID" 
         }
         elseif (!($quiet))
         { 
@@ -231,7 +281,14 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         # since login was successful, lets create some environment variables about the Appliance we connected to
         Try 
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+            if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
+            {
+                $resp = Invoke-RestMethod -SkipCertificateCheck -Uri https://$acthost/actifio/api/fullversion
+            }
+            else 
+            {
+                $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/fullversion
+            }
         } 
         Catch 
         { 
@@ -245,35 +302,36 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         {
             if ($resp.result)
             {
-                $global:ACTPLATFORM = $resp.result.platform.SubString(0,3)
+                $env:ACTPLATFORM = $resp.result.platform.SubString(0,3)
             }
             else 
             {
-                $global:ACTPLATFORM = "UNKNOWN"
+                $env:ACTPLATFORM = "UNKNOWN"
             }
             if ($resp.result.version)
             {
-                $global:ACTVERSION = $resp.result.version
+                $env:ACTVERSION = $resp.result.version
             }
             else 
             {
-                $global:ACTVERSION = "0.0.0.0"
+                $env:ACTVERSION = "0.0.0.0"
             }
         }
         #  if user issued -s they can override sort fetching
         if ($sortoverride)
         {
-            $global:ACTSORTOVERRIDE = "y"   
+            $env:ACTSORTOVERRIDE = "y"   
             $global:ACTSORTORDER = ""      
         }
         elseif ($sortoverfile)
         {
-            $global:ACTSORTOVERRIDE = "f"  
+            $env:ACTSORTOVERRIDE = "f"  
         }
         else
         {
-            $global:ACTSORTOVERRIDE = "n"   
+            $env:ACTSORTOVERRIDE = "n"   
         }
+        
         # now we create functions for SARG
         New-SARGFuncs
     }
@@ -296,23 +354,23 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     #>
  
 
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
     }
     # disconnect
-    $Url = "https://$acthost/actifio/api/logout" + "?&sessionid=$ACTSESSIONID"
+    $Url = "https://$env:acthost/actifio/api/logout" + "?&sessionid=$env:ACTSESSIONID"
     $RestError = $null
     Try
     {
-        if ($IGNOREACTCERTS -eq "y")
+        if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
+            $null = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
         }
         else 
         {
-            $resp = Invoke-RestMethod -Method POST -Uri $Url  -TimeoutSec 15
+            $null = Invoke-RestMethod -Method POST -Uri $Url  -TimeoutSec 15
         }
     }
     Catch
@@ -332,8 +390,22 @@ function Disconnect-Act([switch][alias("q")]$quiet)
         else
         { 
             Write-Host "Success!"
-            $global:ACTSESSIONID = ""
         }
+    }
+    $env:acthost = $null
+    $env:ACTVERSION = $null
+    $env:ACTPLATFORM = $null
+    $env:ACTSESSIONID = $null
+    $env:ACTPRIVILEGES = $null
+    $env:ACTSORTOVERRIDE = $null
+    $env:actmaxapilimit = $null
+    $env:IGNOREACTCERTS = $null
+    $global:ACTSORTORDER = $null
+    # Set the security protocol back to the old defaults
+    if ($env:CUR_PROTS) 
+    {
+        [Net.ServicePointManager]::SecurityProtocol = $env:CUR_PROTS
+        $env:CUR_PROTS = $null
     }
 }
 
@@ -341,15 +413,15 @@ function Disconnect-Act([switch][alias("q")]$quiet)
 # internal function to pull SARG sort order
 function Get-SARGSortOrder([string]$parmletter,[string]$reportname)
 {
-    if ($ACTPLATFORM -eq "CDS")
+    if ($env:ACTPLATFORM -eq "CDS")
     {
         $ACTSORTORDER | where-object {$_.option -eq $parmletter -and $_.reportname -eq $reportname -and $_.CDS -eq "Y"} | select-object SortOrder
     }
-    elseif ($ACTPLATFORM -eq "Sky")  
+    elseif ($env:ACTPLATFORM -eq "Sky")  
     {
         $ACTSORTORDER | where-object {$_.option -eq $parmletter -and $_.reportname -eq $reportname -and $_.VDP -eq "Y"} | select-object SortOrder
     }
-    elseif ($ACTPLATFORM -eq "CDX")  
+    elseif ($env:ACTPLATFORM -eq "CDX")  
     {
         $ACTSORTORDER | where-object {$_.option -eq $parmletter -and $_.reportname -eq $reportname -and $_.CDX -eq "Y"} | select-object SortOrder
     }
@@ -381,7 +453,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 
 
     # make sure we have something to connect to
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -405,8 +477,8 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
         $sargsortordertest =  $null
         $trimm = $null
         # we will split on dashes.   This means if there are dashes in a search object, this will break the process.  We dump blank lines
-        $sargparms = " " + "$sargparms" 
-        $dashsep = $sargparms.Split(" -") -notmatch '^\s*$'
+        $sargparms = " " + "$sargparms"
+        $dashsep = $sargparms -split " -" -notmatch '^\s*$'
         foreach ($line in $dashsep) 
         {
             # remove any whitespace at the end
@@ -464,7 +536,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                 if ( $parmcount.words -gt 1 )
                 { 
                     # the first word will be the parm   If the first word is more than one character long then there is an issue and we ignore it
-                    $firstword = $trimm.Split([Environment]::Space) | Select -First 1
+                    $firstword = $trimm.Split([Environment]::Space) | Select-Object -First 1
                     $length = $firstword.length
                     if ( $length -eq 1 )
                     {
@@ -483,7 +555,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
         }
         if ($helprequest -eq "y")
         {
-            $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID" + "&h=true"
+            $Url = "https://$env:acthost/actifio/api/report/$reportname" + "?" + "sessionid=$env:ACTSESSIONID" + "&h=true"
             $helpgrab = Get-ActAPIData  $Url
             if (!($helpgrab.information))
             {
@@ -497,9 +569,9 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
         }
         else
         {
-            $Url = "https://$acthost/actifio/api/report/$reportname" + "?" + "sessionid=$ACTSESSIONID"  + "$sargopts"
+            $Url = "https://$env:acthost/actifio/api/report/$reportname" + "?" + "sessionid=$env:ACTSESSIONID"  + "$sargopts"
             $sargoutput = Get-ActAPIData  $Url
-            if (($sargoutput).errorcode -eq $null)
+            if (($sargoutput).errormessage -eq $null)
             {
                 # if we got here we must have output we can sort,  if we don't have a sort order yet, this is our last chance to get one
                 if ($sargreportsortorder -eq $null)
@@ -507,7 +579,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
                     $sargreportsortorder = Get-SARGSortOrder -parmletter "-" -reportname $reportname
                 }
                 # if we still don't have a sort order, just give the output without it
-                if (($sargreportsortorder.SortOrder -eq "") -or ($null -eq $sargreportsortorder.SortOrder) )
+                if (($sargreportsortorder.SortOrder -eq "") -or ($sargreportsortorder.SortOrder -eq $null) )
                 {
                     $sargoutput
                 }
@@ -525,12 +597,13 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
     } 
     else
 	{
-        $Url = "https://$acthost/actifio/api/report/$reportname" + "?sessionid=$ACTSESSIONID" 
+        $Url = "https://$env:acthost/actifio/api/report/$reportname" + "?sessionid=$env:ACTSESSIONID" 
         $sargoutput = Get-ActAPIData  $Url
-        if (($sargoutput).errorcode -eq $null)
+
+        if (($sargoutput).errormessage -eq $null)
         {
             $sargreportsortorder = Get-SARGSortOrder -parmletter "-" -reportname $reportname
-            if (($sargreportsortorder.SortOrder -eq "") -or ($null -eq $sargreportsortorder.SortOrder) )
+            if (($sargreportsortorder.SortOrder -eq "") -or ($sargreportsortorder.SortOrder -eq $null) )
             {
                 $sargoutput
             }
@@ -549,7 +622,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 # we dont want to precreate all the SARG functions, but reportlist is a good one to help the client understand if SARG commands dont work.
 function reportlist ()
 {
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act.  Report commands are only loaded after you login to an Appliance."  
         return;
@@ -573,15 +646,15 @@ function New-SARGFuncs()
 
 
     # make sure we have something to connect to
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
     }
-    $Url = "https://$acthost/actifio/api/report/reportlist?p=true&sessionid=$ACTSESSIONID"
+    $Url = "https://$env:acthost/actifio/api/report/reportlist?p=true&sessionid=$env:ACTSESSIONID"
     Try
     {  
-        if ($IGNOREACTCERTS -eq "y")
+        if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {  
             $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
         }
@@ -608,7 +681,7 @@ function New-SARGFuncs()
 		set-item -path function:global:$cmd -value { Get-SARGReport $cmd $args}.getNewClosure(); 
     }
 
-    if ($ACTSORTOVERRIDE -eq "n")
+    if ($env:ACTSORTOVERRIDE -eq "n")
     {
         $sortorderfetch = reportlist -s
         if ($sortorderfetch.SortOrder -ne $null)
@@ -624,7 +697,7 @@ function New-SARGFuncs()
             }
         }
     }
-    if ($ACTSORTOVERRIDE -eq "f")
+    if ($env:ACTSORTOVERRIDE -eq "f")
     {
         $mp = (Get-Module -ListAvailable ActPowerCLI).ModuleBase
         if ( Test-Path $mp\ActPowerCLI_SortOrder.csv ) 
@@ -632,7 +705,7 @@ function New-SARGFuncs()
             $global:ACTSORTORDER = Import-Csv -Path $mp\ActPowerCLI_SortOrder.csv -Delimiter ","
         }   
     }
-    if ($ACTSORTOVERRIDE -eq "y")
+    if ($env:ACTSORTOVERRIDE -eq "y")
     {
         $global:ACTSORTORDER = ""
     }
@@ -641,7 +714,7 @@ function New-SARGFuncs()
 
 # this function will imitate udsinfo so that users don't need to remember each individual function
 # handle request for udsinfo command
-Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, [switch][alias("h")]$help)
+Function udsinfo([string]$subcommand, [switch][alias("h")]$help)
 {
     <#
     .SYNOPSIS
@@ -709,7 +782,7 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
     #>
 
     # make sure we have something to connect to
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -717,7 +790,7 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
 	# if no subcommand is provided, display the list of subcommands and exit
 	if ( $subcommand -eq "" )
 	{
-        $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"
+        $Url = "https://$env:acthost/actifio/api/info/help" + "?sessionid=$env:ACTSESSIONID"
         Get-ActAPIData  $Url
         return
     }
@@ -726,11 +799,11 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
 		# if there's no subcommand, then get help for udsinfo -h. If not, udsinfo subcommand -h
 		if ( $subcommand -ne "")
 		{
-            $Url = "https://$acthost/actifio/api/info/help/$subcommand" + "?sessionid=$ACTSESSIONID"
+            $Url = "https://$env:acthost/actifio/api/info/help/$subcommand" + "?sessionid=$env:ACTSESSIONID"
             Get-ActAPIData  $Url
 		} else 
 		{
-            $Url = "https://$acthost/actifio/api/info/help" + "?sessionid=$ACTSESSIONID"   
+            $Url = "https://$env:acthost/actifio/api/info/help" + "?sessionid=$env:ACTSESSIONID"   
             Get-ActAPIData  $Url
         }		
         return
@@ -739,45 +812,21 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
     $udsopts = $null
     if ($args) 
     {
-        $taskparms = " " + "$args"
-        $parmcount = $taskparms | measure-object -word
-        $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
-        foreach ($line in $dashsep) 
-        {
-            # remove any whitespace at the end
-            $trimm = $line.TrimEnd()
-            # is there one word here or two?  If one word we have a single word parameter
-            $innerparmcount = $trimm | measure-object -word
-            if ( $innerparmcount.words -eq 1)
-            {
-                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-            }
-            else
-            {
-                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
-                $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-            }
-        }
-    }
-    if ($argument)
-    {
-        $udsopts =  $udsopts + "&argument=" + "$argument"
+        $udsopts = generatepayload($args)
     }
 
     # we didn't get asked for help so lets grab the output
     # we always start at apistart of 0 which is the first result
     $apistart = 0 
     # if somehow the default actmaxapilimit set at connect-act is gone, we set it again
-    if ( $actmaxapilimit -eq "" )
+    if ( $env:actmaxapilimit -eq "" )
     {
-        $actmaxapilimit = 0
+        $env:actmaxapilimit = 0
     }
     # the api limit per command should be either 4096 or if the user set actmaxapilimit to a number 1-4095 then use that value
-    if (( $actmaxapilimit  -gt 0 ) -and ( $actmaxapilimit  -le 4096 ))
+    if (( $env:actmaxapilimit  -gt 0 ) -and ( $env:actmaxapilimit  -le 4096 ))
     { 
-        $maxlimitpercommand = $actmaxapilimit
+        $maxlimitpercommand = $env:actmaxapilimit
     }
     else
     {
@@ -791,23 +840,23 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
         if ($udsopts -and $filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "$udsopts" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$env:acthost/actifio/api/info/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "$udsopts" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             $output = Get-ActAPIData  $Url
         }
         elseif ($udsopts)
         {
-            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$env:acthost/actifio/api/info/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "$udsopts" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             $output = Get-ActAPIData  $Url
         }
         elseif ($filtervalue)
         {
             $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
+            $Url = "https://$env:acthost/actifio/api/info/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"
             $output = Get-ActAPIData  $Url
         }
         else
         {
-            $Url = "https://$acthost/actifio/api/info/$subcommand" + "?sessionid=$ACTSESSIONID"  + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"   
+            $Url = "https://$env:acthost/actifio/api/info/$subcommand" + "?sessionid=$env:ACTSESSIONID"  + "&apistart=$apistart" + "&apilimit=$maxlimitpercommand"   
             $output = Get-ActAPIData  $Url
         }
         # count the results and add 4096 to apistart.  If we got less than 4096 we are done and can finish by settting done to 1
@@ -824,21 +873,21 @@ Function udsinfo([string]$subcommand,  [string]$argument, [string]$filtervalue, 
         $apistart = $apistart + 4096
         $nextlimit = $apistart + 4096
         }
-        if ( $apistart -eq $actmaxapilimit)
+        if ( $apistart -eq $env:actmaxapilimit)
         {
             $done = 1
         }
         # we now need to consider if the maxlimit should be trimmed
-        if (($actmaxapilimit -gt 4096) -and ( $nextlimit -gt $actmaxapilimit))
+        if (($env:actmaxapilimit -gt 4096) -and ( $nextlimit -gt $env:actmaxapilimit))
         {
-            $maxlimitpercommand = $actmaxapilimit - $apistart
+            $maxlimitpercommand = $env:actmaxapilimit - $apistart
         }
     } while ($done -eq 0)
 }
 
 
 
-Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$help) 
+Function udstask ([string]$subcommand, [switch][alias("h")]$help) 
 {
     <#
     .SYNOPSIS
@@ -889,7 +938,7 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     # this function will imitate udstask so that users don't need to remember each
     # individual function.
     # make sure we have something to connect to
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -898,7 +947,7 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     # if no subcommand is provided, get the list of udstask commands and exit.
 	if ( $subcommand -eq "" )
 	{
-        $Url = "https://$acthost/actifio/api/task/help" + "?&sessionid=$ACTSESSIONID"
+        $Url = "https://$env:acthost/actifio/api/task/help" + "?&sessionid=$env:ACTSESSIONID"
         Get-ActAPIData  $Url
 		return;
 	}
@@ -908,11 +957,11 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
 		# if there's no subcommand, then get help for udstask -h. If not, udstask subcommand -h
 		if ( $subcommand -ne "")
 		{
-            $Url = "https://$acthost/actifio/api/task/help/$subcommand" + "?&sessionid=$ACTSESSIONID"
+            $Url = "https://$env:acthost/actifio/api/task/help/$subcommand" + "?&sessionid=$env:ACTSESSIONID"
             Get-ActAPIData $Url
 		} else 
 		{
-            $Url = "https://$acthost/actifio/api/task/help" + "?sessionid=$ACTSESSIONID"
+            $Url = "https://$env:acthost/actifio/api/task/help" + "?sessionid=$env:ACTSESSIONID"
             Get-ActAPIData $Url
 		}
 		return;
@@ -922,41 +971,17 @@ Function udstask ([string]$subcommand, [string]$argument, [switch][alias("h")]$h
     $udsopts = $null
     if ($args) 
     {
-        $taskparms = " " + "$args"
-        $parmcount = $taskparms | measure-object -word
-        $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
-        foreach ($line in $dashsep) 
-        {
-            # remove any whitespace at the end
-            $trimm = $line.TrimEnd()
-            # is there one word here or two?  If one word we have a single word parameter
-            $innerparmcount = $trimm | measure-object -word
-            if ( $innerparmcount.words -eq 1)
-            {
-                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-            }
-            else
-            {
-                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
-                $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-            }
-        }
-    }
-    if ($argument)
-    {
-        $udsopts =  $udsopts + "&argument=" + "$argument"
+        $udsopts = generatepayload($args)
     }
     if ($udsopts) 
     {
-        $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+        $Url = "https://$env:acthost/actifio/api/task/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "$udsopts"
         Get-ActAPIDataPost  $Url
     }
     else
     # a udstask command without argument or args is likely to fail, but let the appliance do the talking
     {
-        $Url = "https://$acthost/actifio/api/task/$subcommand" + "?sessionid=$ACTSESSIONID"
+        $Url = "https://$env:acthost/actifio/api/task/$subcommand" + "?sessionid=$env:ACTSESSIONID"
         Get-ActAPIDataPost $Url
     }   
 }
@@ -1018,7 +1043,7 @@ Function Save-ActPassword([string]$filename)
 
 
  # function to imitate usvcinfo so that users don't need to remember each individual function
-Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
+Function usvcinfo([string]$subcommand)
 {
     <#
     .SYNOPSIS
@@ -1041,20 +1066,20 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
    
     # no help is available for this command
     # make sure we have something to connect to
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
     }
     # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
-    if (!($ACTPLATFORM))
+    if (!($env:ACTPLATFORM))
     {
         Get-ActErrorMessage -messagetoprint "Error: usvcinfo command is only available on Actifio CDS. Current platform is Unknown"
         return
     }
-	if ( $ACTPLATFORM.toLower() -ne "cds" ) 
+	if ( $env:ACTPLATFORM.toLower() -ne "cds" ) 
 	{
-		Get-ActErrorMessage -messagetoprint "Error: usvcinfo command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
+		Get-ActErrorMessage -messagetoprint "Error: usvcinfo command is only available on Actifio CDS. Current platform is $env:ACTPLATFORM"
 		return
 	}
 	# if no subcommand is provided, display the list of subcommands and exit
@@ -1065,68 +1090,26 @@ Function usvcinfo([string]$subcommand, [string]$argument, [string]$filtervalue)
     }
     # if we got to here we are going to try a udsinfo command
     $udsopts = $null
+
     if ($args) 
     {
-        $taskparms = " " + "$args"
-        $parmcount = $taskparms | measure-object -word
-        $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
-        foreach ($line in $dashsep) 
-        {
-            # remove any whitespace at the end
-            $trimm = $line.TrimEnd()
-            # is there one word here or two?  If one word we have a single word parameter
-            $innerparmcount = $trimm | measure-object -word
-            if  ( $innerparmcount.words -eq 1) 
-            {
-                $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-            }
-            else
-            {
-                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
-                if ($firstword -eq "bytes")
-                {
-                    $udsopts =  $udsopts + "&" + "bytes=true" + "&argument=" + "$secondword"
-                }
-                else 
-                {
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-                }
-            }
-        }
-    }
-    if ($argument)
-    {
-        $udsopts =  $udsopts + "&argument=" + "$argument"
+        $udsopts = generatepayload($args)
     }
     # we proceed to try and run the command
-    if ($udsopts -and $filtervalue)
+    if ($udsopts)
     {
-        $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" + "$udsopts" 
-        Get-ActAPIData  $Url
-    }
-    elseif ($udsopts)
-    {
-        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts" 
-        Get-ActAPIData  $Url
-    }
-    elseif ($filtervalue)
-    {
-        $Encodedfilter = [System.Web.HttpUtility]::UrlEncode($filtervalue)
-        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID" + "&filtervalue=" + "$Encodedfilter" 
+        $Url = "https://$env:acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "$udsopts" 
         Get-ActAPIData  $Url
     }
     else
     {
-        $Url = "https://$acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$ACTSESSIONID"  
+        $Url = "https://$env:acthost/actifio/api/shinfo/$subcommand" + "?sessionid=$env:ACTSESSIONID"  
         Get-ActAPIData  $Url
     }
 }
 
 
-Function usvctask([string]$subcommand, [string]$argument)
+Function usvctask([string]$subcommand)
 {
     <#
     .SYNOPSIS
@@ -1143,20 +1126,20 @@ Function usvctask([string]$subcommand, [string]$argument)
 
     # this command will allow users to run specific usvctask commands.
     # make sure we have something to connect to
-    if ( (!($ACTSESSIONID)) -or (!($acthost)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
     }
     # if the platform is Virtual, then usvcinfo doesn't work. so stop right here.
-    if (!($ACTPLATFORM))
+    if (!($env:ACTPLATFORM))
     {
         Get-ActErrorMessage -messagetoprint "Error: usvctask command is only available on Actifio CDS. Current platform is Unknown"
         return
     }
-	if ( $ACTPLATFORM.toLower() -ne "cds" ) 
+	if ( $env:ACTPLATFORM.toLower() -ne "cds" ) 
 	{
-		Get-ActErrorMessage -messagetoprint "Error: usvctask command is only available on Actifio CDS. Current platform is $ACTPLATFORM"
+		Get-ActErrorMessage -messagetoprint "Error: usvctask command is only available on Actifio CDS. Current platform is $env:ACTPLATFORM"
 		return
 	}
 	# if no subcommand is provided, display the list of subcommands and exit
@@ -1169,52 +1152,18 @@ Function usvctask([string]$subcommand, [string]$argument)
      $udsopts = $null
      if ($args) 
      {
-         $taskparms = " " + "$args"
-         $parmcount = $taskparms | measure-object -word
-         $dashsep = $taskparms.Split(" -") -notmatch '^\s*$'
-         foreach ($line in $dashsep) 
-         {
-             # remove any whitespace at the end
-             $trimm = $line.TrimEnd()
-             # is there one word here or two?  If one word we have a single word parameter
-             $innerparmcount = $trimm | measure-object -word
-             if ( $innerparmcount.words -eq 1)
-             {
-                 $udsopts =  $udsopts + "&" + "$trimm" + "=" + "true" 
-             }
-             else
-             {
-                $firstword = $trimm.Split([Environment]::Space) | Select -First 1
-                $secondword = $trimm.Split([Environment]::Space) | Select -skip 1
-                # if we see force and a value then the value is actually the argument and force has eaten it
-                if ($firstword -eq "force")
-                {
-                    $udsopts =  $udsopts + "&" + "force" + "=" + "true" 
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&argument" + "="  + "$Encodedsecondword"
-                }
-                else 
-                {
-                    $Encodedsecondword = [System.Web.HttpUtility]::UrlEncode($secondword)
-                    $udsopts =  $udsopts + "&" + "$firstword" + "="  + "$Encodedsecondword"
-                }
-             }
-         }
-     }
-     if ($argument)
-     {
-         $udsopts =  $udsopts + "&argument=" + "$argument"
+         $udsopts = generatepayload($args)
      }
 
      if ($udsopts)
      {
-        $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID" + "$udsopts"
+        $Url = "https://$env:acthost/actifio/api/shtask/$subcommand" + "?sessionid=$env:ACTSESSIONID" + "$udsopts"
          Get-ActAPIDataPost $Url
     }
     else
     # run the command without args.  Most commands require an arg, but the appliance will let the user know
     {
-        $Url = "https://$acthost/actifio/api/shtask/$subcommand" + "?sessionid=$ACTSESSIONID"
+        $Url = "https://$env:acthost/actifio/api/shtask/$subcommand" + "?sessionid=$env:ACTSESSIONID"
         Get-ActAPIDataPost $Url
     }   
 }
@@ -1245,7 +1194,7 @@ function Set-ActAPILimit([Parameter(Mandatory = $true)]
     #>
 
 
-    $global:actmaxapilimit = $userapilimit
+    $env:actmaxapilimit = $userapilimit
 }
 
 # errors can either have JSON and be easy to format or can be text,  we need to sniff
@@ -1261,7 +1210,7 @@ Function Test-ActJSON()
     {
         Try
         {
-            $isthisjson = $args | Test-Json -ErrorAction Stop
+            $null = $args | Test-Json -ErrorAction Stop
             $validJson = $true
         }
         Catch
@@ -1291,28 +1240,55 @@ Function Get-ActAPIData
 
     if ($args)
     {
-        Try    
+
+        if ( $((get-host).Version.Major) -gt 5 )
         {
-            if ($IGNOREACTCERTS -eq "y")
-            {  
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+            Try    
+            {
+                if ($env:IGNOREACTCERTS -eq "y") 
+                {  
+                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+                }
+                else 
+                {
+                    $resp = Invoke-RestMethod -Method Get -Uri "$args" 
+                }
             }
-            else 
+            Catch
+            {
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                Test-ActJSON $RestError
+            }
+            else
+            {
+                $resp.result
+            }
+        }
+        else 
+        {
+            Try    
             {
                 $resp = Invoke-RestMethod -Method Get -Uri "$args" 
             }
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            $resp.result
+            Catch
+            {
+                $result = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($result)
+                $reader.BaseStream.Position = 0
+                $reader.DiscardBufferedData()
+                $responseBody = $reader.ReadToEnd();
+            }
+            if ($responseBody) 
+            {
+                $responseBody | ConvertFrom-Json
+            }
+            else
+            {
+                $resp.result
+            }
         }
     }
 }
@@ -1325,44 +1301,83 @@ Function Get-ActAPIDataPost
     This is an internal function used to check fetch data from the appliance.  You do not use this function directly
     #>
 
-
     if ($args)
     {
-        Try    
+        if ( $((get-host).Version.Major) -gt 5 )
         {
-            if ($IGNOREACTCERTS -eq "y")
+            Try    
             {
-                $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
-            }
-            else 
-            {
-                $resp = Invoke-RestMethod -Method Post -Uri "$args" 
-            }
-        }
-        Catch
-        {
-            $RestError = $_
-        }
-        if ($RestError) 
-        {
-            Test-ActJSON $RestError
-        }
-        else
-        {
-            if ($resp.result)
-            {
-                if (($resp.result).GetType().Name -eq "String")
+                if ($env:IGNOREACTCERTS -eq "y")  
                 {
-                    $resp
+                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
                 }
                 else 
                 {
-                    $resp.result
+                    $resp = Invoke-RestMethod -Method Post -Uri "$args" 
                 }
             }
-            else 
+            Catch
             {
-                $resp    
+                $RestError = $_
+            }
+            if ($RestError) 
+            {
+                Test-ActJSON $RestError
+            }
+            else
+            {
+                if ($resp.result)
+                {
+                    if (($resp.result).GetType().Name -eq "String")
+                    {
+                        $resp
+                    }
+                    else 
+                    {
+                        $resp.result
+                    }
+                }
+                else 
+                {
+                    $resp    
+                }
+            }
+        }
+        else 
+        {
+            Try    
+            {
+                $resp = Invoke-RestMethod -Method Post -Uri "$args" 
+            }
+            Catch
+            {
+                $result = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($result)
+                $reader.BaseStream.Position = 0
+                $reader.DiscardBufferedData()
+                $responseBody = $reader.ReadToEnd();
+            }
+            if ($responseBody) 
+            {
+                $responseBody | ConvertFrom-Json
+            }
+            else
+            {
+                if ($resp.result)
+                {
+                    if (($resp.result).GetType().Name -eq "String")
+                    {
+                        $resp
+                    }
+                    else 
+                    {
+                        $resp.result
+                    }
+                }
+                else 
+                {
+                    $resp    
+                }
             }
         }
     }
@@ -1373,7 +1388,7 @@ function Get-ActErrorMessage ([string]$messagetoprint)
 {
 
         $acterror = @()
-        $acterrorcol = "" | Select errormessage
+        $acterrorcol = "" | Select-Object errormessage
         $acterrorcol.errormessage = "$messagetoprint"
         $acterror = $acterror + $acterrorcol
         $acterror
@@ -1395,15 +1410,14 @@ Function Get-Privileges
 
     #>
 
-
-    if ($ACTPRIVILEGES)
+    if ($env:ACTPRIVILEGES)
     {
         $privs = @()
-        $privcolumn = "" | Select Priviledges
+        $privcolumn = "" | Select-Object Priviledges
         foreach ($line in $ACTPRIVILEGES) {
         $privcolumn.Priviledges = "$line"
         $privs = $privs + $privcolumn
-        $privcolumn = "" | Select Priviledges
+        $privcolumn = "" | Select-Object Priviledges
         }
     }
     if ($privs)
@@ -1450,7 +1464,7 @@ Function Get-ActAppID([string]$hostname, [string]$appname)
     $returnedapp = udsinfo lsapplication -filtervalue "appname=$appname&hostname=$hostname"
     if ($returnedapp.id)
     {
-        $returnedapp | select id
+        $returnedapp | Select-Object id
     }
     else
     {
@@ -1520,7 +1534,7 @@ Function Get-LastSnap([string]$app, [string]$jobclass, [int]$backupinlast)
     $backups = udsinfo lsbackup -filtervalue "$fv" | Select-Object -Last 1 
     if ($backups.id)
     {
-        $backups | select id, appname, appid, backupname, backupdate, label, hostname, policyname, sltname, slpname, jobclass
+        $backups | Select-Object id, appname, appid, backupname, backupdate, label, hostname, policyname, sltname, slpname, jobclass
     }
     else
     {
@@ -1555,4 +1569,70 @@ Function Get-ActifioLogs ([int]$tail)
 
     Get-Content -Path "C:\Program Files\Actifio\log\UDSAgent.log" -Tail $tail -Wait
 
+}
+
+Function generatepayload($arglist) 
+{
+	# holds if the previous argument analyzed was a param or a value
+	# so if someone passes -physicalrdm -nowait, this should be smart enough to		
+	# make it -physicalrdm true -nowait true
+	$currargtype = $null;
+	$prevargtype = $null;
+
+	# but if only one argument is passed, we should return "argument" = arg
+	if ( $arglist.Length -eq 1 )
+	{
+		if (  $arglist[0].ToString().StartsWith("-") -eq $false) 
+		{
+			return $udsopts = "&argument=" + $arglist[0]
+		} 
+		else
+		{
+			return $udsopts = $arglist[0] +  "=true"
+		}
+	} 
+
+	foreach ($arg in $arglist) 
+	{
+        # we handle force separately as it wont have a value and will steal the arg if we let it
+        if ($arg -eq "-force")
+        {
+            $currargtype = "value";
+            $udsopts = $udsopts + "&force=true"
+        } 
+        elseif ($arg.ToString().StartsWith("-")) 
+		{
+			# current argument is parameter
+			$currargtype = "param";
+
+			if ( $prevargtype -eq $currargtype -and $currargtype -eq "param" ) 
+			{
+				$udsopts = $udsopts + "true" 
+            }
+			$temparg = "&" + $arg.TrimStart("-")
+			$udsopts = $udsopts + $temparg + "=";
+		} 
+		else 
+		{
+			# current argument is a value
+			$currargtype = "value";
+			# if two values are together, then insert "argument" before the last one.
+			if ( $prevargtype -eq $currargtype -and $currargtype -eq "value" )
+			{
+				$udsopts = $udsopts + "&argument=" 
+            }
+            $namepayload =  $arg
+            $encodedpayload = [System.Web.HttpUtility]::UrlEncode($namepayload)
+			$udsopts = $udsopts + $encodedpayload 
+		}
+
+		$prevargtype = $currargtype;
+	}
+
+	# add a true if the last argument is a parameter 
+	if (( $arglist[-1].ToString().StartsWith("-") )  -and ($arg -ne "-force"))
+	{
+		$udsopts = $udsopts + "true" 
+	}
+	return $udsopts
 }

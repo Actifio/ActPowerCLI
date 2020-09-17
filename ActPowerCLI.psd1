@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.25'
+ModuleVersion = '10.0.1.26'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -33,7 +33,7 @@ Copyright = '(c) 2020 Actifio, Inc. All rights reserved'
 Description = 'This is a community generated powershell module that can replace ActPowerCLI'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '7.0'
+PowerShellVersion = '5.0'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -98,18 +98,24 @@ PrivateData = @{
         Tags = @("Actifio","AGM","Sky","CDS","CDX","VDP")
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/Actifio/ActPowerCLI-PS7'
+        LicenseUri = 'https://github.com/Actifio/ActPowerCLI/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/Actifio/ActPowerCLI-PS7'
+        ProjectUri = 'https://github.com/Actifio/ActPowerCLI'
 
         # A URL to an icon representing this module.
         IconUri = 'https://i.imgur.com/QAaK5Po.jpg'
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.26] 2020-09-13
+        Updates to allow this version to run on PS5.  
+
         ## [10.0.1.25] 2020-09-15
-        Fix typo in SARG sort order logic that was making some searched find nothing
+        Fix typo in SARG sort order logic that was making some searches find nothing
+ 
+        ## [10.0.1.24] 2020-09-02
+        Add Get-ActifioLogs
 
         ## [10.0.1.24] 2020-09-02
         Add Get-ActifioLogs

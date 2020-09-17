@@ -15,7 +15,7 @@ function GetPSModulePath
     }
     else 
     {
-        if ( $hostVersionInfo -lt "7" )
+        if ( $hostVersionInfo -lt "6" )
         {
             return $env:PSModulePath.Split(';')
         }
@@ -94,6 +94,7 @@ function CreateModuleContent7
   # Attempts to create a new folder and copy over the ActPowerCLI Module contents
   try
   {
+    $PSScriptRoot
     $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI* -Recurse | Unblock-File
     $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
     $null = Copy-Item $PSScriptRoot\ActPowerCLI.psm1 $InstallPath -Force -Recurse -ErrorAction Stop
@@ -122,7 +123,7 @@ Clear-Host
 $hostVersionInfo = (get-host).Version.Major
 
 # print version we are installing
-if ( $hostVersionInfo -lt "7" )
+if ( $hostVersionInfo -lt "5" )
 {
     Import-LocalizedData -BaseDirectory $PSScriptRoot\ActPowerCLI_PS3 -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
     Write-host 'Detected PowerShell version:   ' $hostVersionInfo
@@ -163,7 +164,7 @@ if ($ActInstall.Length -gt 0)
     else
     {
         RemoveModuleContent
-        if ( $hostVersionInfo -lt "7" )
+        if ( $hostVersionInfo -lt "5" )
         {
             CreateModuleContent
         }
@@ -180,7 +181,7 @@ else
     Write-Host ""
     $InstallPath = InstallMenu -InstallPathList (GetPSModulePath) -InstallAction installation
     $InstallPath = $InstallPath + '\ActPowerCLI\'
-    if ( $hostVersionInfo -lt "7" )
+    if ( $hostVersionInfo -lt "5" )
     {
         CreateModuleContent
     }
