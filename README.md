@@ -6,27 +6,54 @@ A Powershell module to manage Actifio Appliances
 
 * It will work with Windows PowerShell Version 4 that has .NET 4.5 installed
 * It will work with Windows PowerShell Version 5 (no requirement for .NET)
-* It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems (no requirement for .NET)
+* It should work with PowerShell Version 6 on Linux, Mac OS and Windows Operating Systems (no requirement for .NET).  No testing is being done on PS6.
+* It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems (no requirement for .NET) 
 
 In this repository are two separate versions of ActPowerCLI, but you don't need to work out which one to use.
 It will be handled automatically by the included installer.
 
 The installer will install one of two versions:
 
-* ActPowerCLI Version 10.0.1.x  is for Windows PowerShell 5 and PowerShell 7 and can be installed from the GitHub zip file or PowerShell Gallery
+* ActPowerCLI Version 10.0.1.x  is for Windows PowerShell 5 and PowerShell 6/7 and can be installed from the GitHub zip file or PowerShell Gallery
 * ActPowerCLI Version 10.0.0.x  is for Windows PowerShell 4 and can be installed from the GitHub zip file
-
-Note this module has not been tested with PowerShell 6.   
 
 #### What about Windows PowerShell 3?
 
 It should work with Windows PowerShell Version 3 on the Windows Operating System that have .NET 4.5 installed, but no further testing is being done on this version
 
-#### What about PowerShell Gallery?
-
-The PowerShell 7 version of this module is available from the PowerShell Gallery.   This is our preferred version, but many users are still working with Windows PowerShell Version 5.   If this is the case for you, then use the version found here which will handle Windows PowerShell.   If you have moved to Version 7 or are willing to install it, then instead use the version in the PowerShell Gallery (keep reading for instructions).
-
 ## Install
+
+You have two choices:   PowerShell Gallery or GitHub download.
+
+### Windows PowerShell 5 and PowerShell 6 and 7 - Install from the PowerShell Gallery 
+
+Install from PowerShell Gallery:
+
+```
+Install-Module -Name ActPowerCLI
+```
+
+If you had a previously manually created install, where you downloaded from GitHub and want to convert to using PowerShell Gallery (strongly recommended), then delete the previous manual install (just delete the module folder) and run the install from PS Gallery using the command above.  Otherwise you will get an error like this:
+
+```
+Update-Module: Module 'ActPowerCLI' was not installed by using Install-Module, so it cannot be updated.
+```
+
+###  PowerShell 7 only - Upgrades from PowerShell Gallery 
+
+Note if you run 'Install-Module' to update an installed module, it will complain.  You need to run:
+```
+Update-Module -name ActPowerCLI
+```
+It will install the latest version and leave the older version in place.  To see the version in use versus all versions downloaded use these two commands:
+```
+Get-InstalledModule actpowercli
+Get-InstalledModule actpowercli -AllVersions
+```
+To uninstall all older versions run this command:
+```
+$Latest = Get-InstalledModule actpowercli; Get-InstalledModule actpowercli -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module
+```
 
 ### All Supported Versions of PowerShell - Install from GitHub download
 
@@ -74,38 +101,58 @@ Common upgrade issues are solved by:
 * Unblocking the downloaded zip file.
 * Running the PowerShell session as Administrator, depending on where current installs are and where you want to install to.
 
+#### GITHUB Install fails with Access to the path 'ActPowerCLI.dll' is denied.
 
+We have seen a case where many PowerShell processes were blocking removal of the old PowerShell module:
+```
+Cannot remove item C:\Windows\system32\WindowsPowerShell\v1.0\Modules\ActPowerCLI\ActPowerCLI.dll: Access to the path 'ActPowerCLI.dll' is denied.
+At C:\Users\av\Downloads\ActPowerCLI-dev\ActPowerCLI-dev\Install-ActPowerCLI.ps1:70 char:5
++     throw "$($_.ErrorDetails)"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Cannot remove i...dll' is denied.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Cannot remove item C:\Windows\system32\WindowsPowerShell\v1.0\Modules\ActPowerCLI\ActPowerCLI.dll: Access to the path 'ActPowerCLI.dll' is denied.
+```
+Check to see if there are many powershell processes running:
+```
+ PS C:\Users\av\Downloads\ActPowerCLI-dev\ActPowerCLI-dev> get-process | where-object {$_.ProcessName -eq "powershell"}
 
-###   PowerShell 7 - Install from the PowerShell Gallery 
+Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
+-------  ------    -----      -----     ------     --  -- -----------
+    566      30    55664      34748     340.31     60   0 powershell
+    565      30    55836      65056     342.69    392   0 powershell
+    566      30    55464      34576     334.48    396   0 powershell
+    566      30    55436      37700     334.45    704   0 powershell
+    565      30    55988      65148     328.70    864   0 powershell
+    561      30    55424      64784     332.88    868   0 powershell
+    566      30    55544      64904     332.86   1536   0 powershell
+    565      30    55632      65032     339.95   1628   0 powershell
+    565      30    55728      36544     340.53   1636   0 powershell
+    565      30    55512      64904     334.56   2108   0 powershell
+    566      30    55580      37252     339.52   2928   0 powershell
+    566      30    55596      64884     336.70   3044   0 powershell
+    566      30    55544      39048     334.88   3544   0 powershell
+    565      30    55512      64868     331.56   4236   0 powershell
+    565      30    55856      65080     341.38   4992   0 powershell
+    565      30    55476      34908     334.23   5192   0 powershell
+    565      30    55588      64936     332.36   5396   0 powershell
+```
+Use stop-process to kill them all.  Note this will kill your local powershell session.
+```
+PS C:\Users\av\Downloads\ActPowerCLI-dev\ActPowerCLI-dev> get-process | where-object {$_.ProcessName -eq "powershell"} | stop-process
 
-Install from PowerShell Gallery:
+Confirm
+Are you sure you want to perform the Stop-Process operation on the following item: powershell(60)?
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "Y"): A
+```
+Start a new powershell session and you should see just on instance:
+```
+PS C:\Windows\system32> get-process | where-object {$_.ProcessName -eq "powershell"}
 
+Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
+-------  ------    -----      -----     ------     --  -- -----------
+    773      31    62112      75044       1.41  20160  19 powershell
 ```
-Install-Module -Name ActPowerCLI
-```
-
-If you had a previously manually created install, where you downloaded from GitHub and want to convert to using PowerShell Gallery (strongly recommended), then delete the previous manual install (just delete the module folder) and run the install from PS Gallery using the command above.  Otherwise you will get an error like this:
-
-```
-Update-Module: Module 'ActPowerCLI' was not installed by using Install-Module, so it cannot be updated.
-```
-
-###  PowerShell 7 only - Upgrades from PowerShell Gallery 
-
-Note if you run 'Install-Module' to update an installed module, it will complain.  You need to run:
-```
-Update-Module -name ActPowerCLI
-```
-It will install the latest version and leave the older version in place.  To see the version in use versus all versions downloaded use these two commands:
-```
-Get-InstalledModule actpowercli
-Get-InstalledModule actpowercli -AllVersions
-```
-To uninstall all older versions run this command:
-```
-$Latest = Get-InstalledModule actpowercli; Get-InstalledModule actpowercli -AllVersions | ? {$_.Version -ne $Latest.Version} | Uninstall-Module
-```
-
+Now you can try and install again.
 
 
 ## Usage
@@ -127,16 +174,36 @@ If you need some examples on the command:
 Get-Help Connect-Act -examples
 ```
 
-Note the original Windows only version has offline help files.   The PowerShell V7 version gets all help on-line.   Report commands will be able to get online help from Appliance release 10.1.0   The usvc commands have limited help at this time.
+The following command specific help is available:
+
+* udsinfo     -->   if run without any parameters will list all available udsinfo commands
+* udsinfo -h  -->   if run without any parameters will list all available commands
+* udstask     -->   if run without any parameters will list all available udstask commands
+* udstask -h  -->   if run without any parameters will list all available udstask commands
+
+Then for each command you can get help, for instance:
+
+* udsinfo lsversion -h    --> will show help for this command
+* udstask mkhost -h       --> will show help for this command
+
+For report commands, help will be available from Appliance release 10.0.2, prior to this you will get this message:
+```
+PS /Users/anthonyv/Documents/github/ActPowerCLI> reportapps -h
+
+errormessage                errorcode
+------------                ---------
+Help not supported for API.     10008
+```
+
 
 ###  Save your password
 
-Create an encrypted password file using the ActPowerCLI Save-ActPassword cmdlet:
+Create an encrypted password file using the ActPowerCLI Save-ActPassword function:
 ```
 Save-ActPassword -filename "C:\temp\password.key"
 ```
 
-The Save-ActPassword cmdlet creates an encyrpted password file on Windows, but on Linux and Mac it only creates an encoded password file.  This is not a shortcoming with the new Module since existing function is matched but ideally we should find an encryption method for non-Windows OS.   This is a 'to-do'
+The Save-ActPassword function creates an encyrpted password file on Windows, but on Linux and Mac it only creates an encoded password file.  
 
 ##### Sharing Windows key files
 
@@ -149,7 +216,7 @@ This will cause issues when running saved scripts when two differerent users wan
 
 ###  Login to your appliance
 
-To login to an Actifio appliance (10.61.5.114) as admin and enter password interactvely:
+To login to an Actifio appliance (10.61.5.114) as admin and enter password interactively:
 ```
 Connect-Act 10.61.5.114 admin -ignorecerts
 ```
@@ -157,7 +224,6 @@ Or login to the Actifio cluster using the password file created in the previous 
 ```
 Connect-Act 10.61.5.114 -actuser admin -passwordfile "c:\temp\password.key" -ignorecerts
 ```
-You will need to store the certificate during first login if you don't use **-ignorecerts**
 
 Note you can use **-quiet** to supress messages.   This is handy when scripting.
 
@@ -262,7 +328,7 @@ $PSVersionTable.CLRVersion       (need .NET 4.0 or above if using Windows PowerS
 Get-ChildItem Env:\PSModulePath | format-list
 Get-module -listavailable 
 Import-module ActPowerCLI
-(Get-Module ActPowerCLI).Version    (need 7.0.0.3 or above)
+(Get-Module ActPowerCLI).Version    
 ```
 
 #### List all commands get help
@@ -314,12 +380,9 @@ Disconnect-Act -quiet
 ```
 
 
-# New Features only for PowerShell 7 and above
+## report sorting 
 
-
-## report sorting in PowerShell 7
-
-In PowerShell 7 the output of all report commands is autosorted to make the data more readable.   
+In PowerShell 5-7 the output of all report commands is autosorted to make the data more readable.   
 You do disable this function by adding -p to the Connect-Act command.
 ```
 Connect-Act 172.24.1.80 av -i -p
@@ -333,10 +396,9 @@ Sorting is loaded by running reportlist -s, but this is onyl supported in Applia
 Connect-Act 172.24.1.80 av -i -f
 ```
 
-
 ## API Limit
 
-Prior to PowerShell version 7, the module has no API limit which means if you run 'udsinfo lsjobhistory' you can easily get results in the thousands or millions.   So for PowerShell version 7 we added a new command to prevent giant lookups by setting a limit on the number of returned objects, although by default this limit is off.  You can set the limit with:   Set-ActAPILimit
+By default, the module has no API limit which means if you run 'udsinfo lsjobhistory' you can easily get results in the thousands or millions.   We offer a  command to prevent giant lookups by setting a limit on the number of returned objects, although by default this limit is off.  You can set the limit with:   Set-ActAPILimit
 
 In the example below, we login and search for snapshot jobs and find there are over sixty thousand.  A smart move would be to use more filters (such as date or appname), but we could also limit the number of results using an APIlimit, so we set it to 100 and only get 100 jobs back:
 
@@ -354,12 +416,6 @@ PS /Users/anthony/git/ActPowerCLI> $jobs.jobname.count
 
 You can reset the limit to 'unlimited' by setting it to '0'.
 
-
-
-
-
-
-
 # FAQ
 
 ### Best practices with report commands
@@ -376,21 +432,7 @@ Don't use this syntax
 -asmalldb
 -a4771
 ```
-Equally if you have multiple parameters, don't stack them.  So if we want to to specify -x and -y, then use this syntax:
-```
--x -y
-```
-Don't use this syntax:
-```
--xy
-```
-
-If apps have names with spaces, such as 'File Server', then the following rules apply:
-*  For PowerShell 6 and below, you need to encase in both single and double quotes like this:
-```
-reportapps -a "'File Server'"
-```
-* For PowerShell 7 and above you only need to use double quotes, like this:
+If apps have names with spaces, such as 'File Server', then you need to use double quotes, like this:
 ```
 reportapps -a "File Server"
 ```
@@ -504,15 +546,6 @@ Check the spelling of the name, or if a path was included, verify that the path 
 
 You need to run Connect-Act and connect to an appliance.   When you do this, the report commands are auto generated.
 
-### I install the Certificate when prompted but the next time I connect it prompts me again
-
-When you install the Certificate it is issued to a specific hostname.   In the example below it is *sa-sky*.  This means when you login you need to use that name.   If you instead specify the IP address, even if it resolves to that name, it will not match the name on the certificate.
-```
-Certificate details
-Issuer:  CN=sa-sky, OU=Demo, O=Actifio, L=Waltham, S=Mass, C=US
-Subject:  CN=sa-sky, OU=Demo, O=Actifio, L=Waltham, S=Mass, C=US
-```
-
 ### Can I specify a PowerShell (PS1) script in an Actifio Workflow?
 
 Actifio workflows allow you to specify a pre and post script.   For Windows these scripts need to be in either .CMD or .BAT format and have relevant extension.   In other words, these have to be files that can be executed by a Windows Command Prompt.   
@@ -595,61 +628,8 @@ Set the policy to "Allow all scripts".
 
 ## What about Self Signed Certs?
 
-For PowerShell versions 3 to 6, the module has the ability to import SSL Certs.   This method is not used in PowerShell 7, so for PowerShell 7 you only have the choice to ignore the certificate.   Clearly you can manually import the certificate and trust it, or you can install a trusted cert on the Appliance to avoid the issue altogether.
-
-### PowerShell 6 never prompts me about Certificates
-
-This is normal.   
-
-### I am getting this error message with PowerShell 6:  *An error occurred while sending the request*
-
-PowerShell from version 6 changed from *Windows PowerShell* to just *PowerShell* to reflect that it can now run on Linux and Mac OS.   The commands used for SSL have changed which will require some changes to the Actifio PowerShell Module.   You may see this error:  
-
-```
-Connect-ActAppliance : One or more errors occurred. (An error occurred while sending the request.)
-At C:\program files\powershell\6-preview\Modules\ActPowerCLI\ActPowerCLI.psm1:192 char:3
-+         Connect-ActAppliance -cdshost $acthost -cdsuser $actuser -Pas ...
-+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ CategoryInfo          : NotSpecified: (:) [Connect-ActAppliance], AggregateException
-+ FullyQualifiedErrorId : System.AggregateException,ActPowerCLI.ConnectActAppliance
-```
-Firstly if you have Windows PowerShell 3.0 to 5.1, use that to install the Actifio Appliance Certificate as a Trusted Root Certificate as per the example shown.  Note the Subject name, in this example *sa-sky*
-```
-PS C:\Users\avandewerdt> connect-act 172.24.1.180
-The SSL certificate from https://172.24.1.180 is not trusted. Please choose one of the following options
-(I)gnore & continue
-(A)ccept & install certificate
-(C)ancel
-Please select an option: a
-Certificate details
-Issuer:  CN=sa-sky, OU=Demo, O=Actifio, L=Waltham, S=Mass, C=US
-Subject:  CN=sa-sky, OU=Demo, O=Actifio, L=Waltham, S=Mass, C=US
-Effective:  12/13/2017 2:25:49 PM
-Expiration:  12/11/2027 2:25:49 PM
-This certificate will be installed into the Trusted Root Certication Authorities store
-Please choose the location where the certificate should be installed
-[M] LocalMachine
-[U] CurrentUser
-Choose location: u
-Certificate added successfully and will be used in the next session.
-Actifio user: av
-Password: **********
-Login Successful!
-PS C:\Users\avandewerdt>
-```
-Once the certificate is installed using Windows PowerShell, you can now use PowerShell 6, but always use the correct Subject name.  In the example above it was *sa-sky* so logging in as *172.24.1.180* will not work.
-```
-PS C:\Program Files\PowerShell\6-preview> connect-act sa-sky
-Actifio user: av
-Password: **********
-Login Successful!
-PS C:\Program Files\PowerShell\6-preview> connect-act 172.24.1.180
-Actifio user: av
-Password: **********
-Connect-ActAppliance : One or more errors occurred. (An error occurred while sending the request.)
-At C:\program files\powershell\6-preview\Modules\ActPowerCLI\ActPowerCLI.psm1:192 char:3
-```
-
+You only have the choice to ignore the certificate.   Clearly you can manually import the certificate and trust it, or you can install a trusted cert on the Appliance to avoid the issue altogether.
+  
 #### Importing or viewing the certificates on your Windows host:
 
 1. Open a Command Prompt window.
