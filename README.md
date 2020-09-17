@@ -27,9 +27,10 @@ You have two choices:   PowerShell Gallery or GitHub download.
 
 ### Windows PowerShell 5 and PowerShell 6 and 7 - Install from the PowerShell Gallery 
 
-Install from PowerShell Gallery:
+Install from PowerShell Gallery.   If Running PowerShell 5, set to Tls12 to avoid NuGet errors.
 
 ```
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Install-Module -Name ActPowerCLI
 ```
 
