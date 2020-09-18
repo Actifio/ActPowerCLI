@@ -105,7 +105,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     
 
     # max objects returned will be unlimited.   Otherwise user can supply a limit
-    if (!($actmaxapilimit))
+    if ((!($actmaxapilimit))  -and ($env:actmaxapilimit -eq $null))
     {
         $env:actmaxapilimit = 0
     }
@@ -1169,9 +1169,9 @@ Function usvctask([string]$subcommand)
 }
 
 
-    # offer a way to limit the maximum number of results in a single lookup
+# offer a way to limit the maximum number of results in a single lookup
 function Set-ActAPILimit([Parameter(Mandatory = $true)]
-[ValidateRange("NonNegative")][int]$userapilimit )
+[ValidateRange(0, [int]::MaxValue)][int]$userapilimit )
 {
     <#
     .SYNOPSIS
@@ -1195,6 +1195,11 @@ function Set-ActAPILimit([Parameter(Mandatory = $true)]
 
 
     $env:actmaxapilimit = $userapilimit
+}
+
+function Get-ActAPILimit
+{
+    $env:actmaxapilimit
 }
 
 # errors can either have JSON and be easy to format or can be text,  we need to sniff

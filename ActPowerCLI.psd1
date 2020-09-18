@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.26'
+ModuleVersion = '10.0.1.27'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ PowerShellVersion = '5.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Get-SARGReport','Set-ActAPILimit','Get-Privileges','Get-ActAppID','Get-LastSnap','reportlist','Get-ActifioLogs')
+FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Get-SARGReport','Set-ActAPILimit','Get-ActAPILimit','Get-Privileges','Get-ActAppID','Get-LastSnap','reportlist','Get-ActifioLogs')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.27] 2020-09-18
+        Set-ActAPILimit was using a PS7 test that failed on PS5,  added Get-ActAPILimit
+
         ## [10.0.1.26] 2020-09-13
         Updates to allow this version to run on PS5.  
 
