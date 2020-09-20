@@ -30,7 +30,7 @@ CompanyName = 'Actifio'
 Copyright = '(c) 2020 Actifio, Inc. All rights reserved'
 
 # Description of the functionality provided by this module
-Description = 'This is a community generated powershell module that can replace ActPowerCLI'
+Description = 'This is a community generated PowerShell Module that can be used to manage Actifio VDP Appliances.  It provides a method to issue udsinfo, udstask and report commands, plus Actifio CDS specific commands.'
 
 # Minimum version of the PowerShell engine required by this module
 PowerShellVersion = '5.0'
@@ -108,6 +108,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.28] 2020-09-20
+        Improved module description for PowerShell Gallery users
+
         ## [10.0.1.27] 2020-09-18
         Set-ActAPILimit was using a PS7 test that failed on PS5,  added Get-ActAPILimit
 
