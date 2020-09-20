@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.29'
+ModuleVersion = '10.0.1.30'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -32,7 +32,7 @@ Copyright = '(c) 2020 Actifio, Inc. All rights reserved'
 ##################################################################################################################
 # Description of the functionality provided by this module
 Description = 'This is a community generated PowerShell Module that can be used to manage Actifio VDP Appliances.  
-It provides a method to issue udsinfo, udstask and report commands, and Actifio CDS specific task and info commands.
+It provides a method to issue udsinfo, udstask and report commands, and Actifio CDS specific task/info commands.
 More information can be found here:  https://github.com/Actifio/ActPowerCLI'
 
 # Minimum version of the PowerShell engine required by this module
@@ -111,7 +111,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
-        ## [10.0.1.29] 2020-09-20
+        ## [10.0.1.30] 2020-09-20
         Improved module description for PowerShell Gallery users
 
         ## [10.0.1.27] 2020-09-18
