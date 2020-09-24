@@ -204,7 +204,7 @@ Create an encrypted password file using the ActPowerCLI Save-ActPassword functio
 Save-ActPassword -filename "C:\temp\password.key"
 ```
 
-The Save-ActPassword function creates an encyrpted password file on Windows, but on Linux and Mac it only creates an encoded password file.  
+The Save-ActPassword function creates an encrypted password file on Windows, but on Linux and Mac it only creates an encoded password file.  
 
 ##### Sharing Windows key files
 
@@ -212,7 +212,7 @@ Currently if a Windows key file is created by a specific user, it cannot be used
 ```
 Key not valid for use in specified state.
 ```
-This will cause issues when running saved scripts when two differerent users want to run the same script with the same keyfile.    To work around this issue, please have each user create a keyfile for their own use.   Then when running a shared script, each user should execute the script specifying their own keyfile.  This can be done by using a parameter file for each script.
+This will cause issues when running saved scripts when two different users want to run the same script with the same keyfile.    To work around this issue, please have each user create a keyfile for their own use.   Then when running a shared script, each user should execute the script specifying their own keyfile.  This can be done by using a parameter file for each script.
 
 
 ###  Login to your appliance
@@ -226,7 +226,7 @@ Or login to the Actifio cluster using the password file created in the previous 
 Connect-Act 10.61.5.114 -actuser admin -passwordfile "c:\temp\password.key" -ignorecerts
 ```
 
-Note you can use **-quiet** to supress messages.   This is handy when scripting.
+Note you can use **-quiet** to hide these messages.   This is handy when scripting.
 
 ###  Find out the current version of ActPowerCLI:
 
@@ -392,7 +392,7 @@ You can display the auto sort method by displaying this exported variable
 ```
 $ACTSORTORDER
 ```
-Sorting is loaded by running reportlist -s, but this is onyl supported in Appliance versions 10.0.2   For earlier versions a CSV file is supplied, ActPowerCLI_SortOrder.csv    If you want to, you can edit this file and force the module to only look in the file by adding -f to the Connect-Act command:
+Sorting is loaded by running reportlist -s, but this is only supported in Appliance versions 10.0.2   For earlier versions a CSV file is supplied, ActPowerCLI_SortOrder.csv    If you want to, you can edit this file and force the module to only look in the file by adding -f to the Connect-Act command:
 ```
 Connect-Act 172.24.1.80 av -i -f
 ```
@@ -751,7 +751,7 @@ Your output might be different!
 | encryptionKey | string    ||         Volumes that are created from encrypted snapshots are automatically encrypted, and volumes that are created from unencrypted snapshots are automatically unencrypted. If no snapshot is selected, you can choose to encrypt the volume.
 | NICInfo   |    structure | true  |   Amazon NIC Details
 | BootDiskSize | number        ||     Boot Disk Size in GB
-|
+
 	
 
 We now focus on building our command, it needs to look like this:
@@ -824,7 +824,7 @@ The output will show which fields are needed:
 | NetworkId | string  | true         
 | SubnetId | string | true        
 | privateIpAddresses | string |  
-|  
+
 
 We need to get this information from the AWS Cloud Platform Console.
 We can have mutiple nics, so we use syntax like this for each one (from 0 upwards):
