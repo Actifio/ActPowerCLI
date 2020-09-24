@@ -712,7 +712,7 @@ Get-ActifioLogs
 
 ## System State Recovery
  
-In this user stort we explore performing a system state recovery to the Cloud. 
+In this user story we explore performing a system state recovery to the Cloud. 
 
 There are two steps needed
 
@@ -731,6 +731,7 @@ udsinfo lssystemdetail -cloudtype VMware -delim :
 
 Here is the current output for AWS.
 We focus on the required=true columns
+Your output might be different!
 
 | name     |     type  |    required | selection
 | ---- |----  |    -------- |---------
@@ -763,9 +764,9 @@ So to determine each value lets look at the method we can use
 #### imageid
 
 We need to learn an image ID using the application ID like this one:
-
+```
 $latestsnap = udsinfo lsbackup -filtervalue "appid=4771&backupdate since 24 hours&jobclass=snapshot"
-
+```
 #### CloudType
 
 Will be one of:
@@ -778,23 +779,24 @@ Will be one of:
 
 ##### volumeType
 
-The output of
+Use the output of
 ```
 udsinfo lssystemdetail -cloudtype aws  | where-object name -eq volumeType | select value
 ```
 Currently it returns:
+
 * General Purpose (SSD)
 * Magnetic
 * Provisioned IOPS SSD(Io1)
 
 ##### RegionCode
 
-The output of
+Use the output of
 ```
 udsinfo lssystemdetail -cloudtype aws 
 udsinfo lssystemdetail -cloudtype aws  | where-object name -eq RegionCode | select value
 ```
-Has a **RegionCode** column with valid values.
+There is a **RegionCode** column with valid values.
 
 ##### NetworkId
 
@@ -825,14 +827,26 @@ The output will show which fields are needed:
 |  
 
 We need to get this information from the AWS Cloud Platform Console.
+We can have mutiple nics, so we use syntax like this for each one (from 0 upwards):
+
+```
+nicInfo0-SecurityGroupId=$awsSecurityGroupID0,nicInfo0-subnetId=$awsSubnetID0,nicInfo0-privateIpAddresses=$awsprivateip0,
+nicInfo1-SecurityGroupId=$awsSecurityGroupID1,nicInfo0-subnetId=$awsSubnetID1,nicInfo0-privateIpAddresses=$awsprivateip1,
+nicInfo2-SecurityGroupId=$awsSecurityGroupID2,nicInfo0-subnetId=$awsSubnetID2,nicInfo0-privateIpAddresses=$awsprivateip2
+```
+The private IP address is not mandatory, so simply omit the field if not needed.
+In our examples we use only one interface, with no private IP, so we get:
+```
+nicInfo0-SecurityGroupId=$awsSecurityGroupID,nicInfo0-subnetId=$awsSubnetID
+```
 
 
 #### CSV file
 
-We download this from the Service Account section of the IAM console.
+We download the security details from the Service Account section of the IAM console.
 In this example we save it as a file av_accessKeys.csv
 
-We can then pull the info we need out of it
+We can then pull the info we need out of it.  
 
 
 ####  Final AWS command
@@ -867,6 +881,7 @@ udstask mountimage -image $imageid -systemprops "vmname=$awsNewVMName,RegionCode
 
 Here is the current output for GCP.
 We focus on the required=true columns
+Your output might be different!
 
 | name | type | required
 | ---- | ---- | --------
@@ -942,6 +957,18 @@ The output will show which fields are needed:
 | privateIpAddresses | string |    
 
 We need to get this information from the Google Cloud Platform Console.
+We can have mutiple nics, so we use syntax like this for each one (from 0 upwards):
+
+```
+nicInfo0-NetworkId=$NetworkId0,nicInfo0-subnetId=$SubnetId0,nicInfo0-privateIpAddresses=$privateip0,
+nicInfo1-NetworkId=$NetworkId1,nicInfo0-subnetId=$SubnetId1,nicInfo0-privateIpAddresses=$privateip1,
+nicInfo2-NetworkId=$NetworkId2,nicInfo0-subnetId=$SubnetId2,nicInfo0-privateIpAddresses=$privateip2
+```
+The private IP address is not mandatory, so simply omit the field if not needed.
+In our examples we use only one interface, with no private IP, so we get:
+```
+nicInfo0-networkId=$gcpNetworkID,nicInfo0-subnetId=$gcpSubnetID
+```
 
 #### JSON file
 
@@ -968,5 +995,5 @@ $gcpkeyfile = [IO.File]::ReadAllText("C:\av\av.json")
 
 The resulting command looks like this:
 ```
-udstask mountimage -image $imageid -systemprops "vmname=$gcpNewVMName, regionCode=$gcpRegion,zone=$gcpZone,nicInfo0-subnetId=$gcpSubnetID,isPublicIp=false,cloudtype=gcp,nicInfo0-networkId=$gcpNetworkID,volumetype=$gcpVolumeType,GCPkeys=$gcpkeyfile" -nowait
+udstask mountimage -image $imageid -systemprops "vmname=$gcpNewVMName, regionCode=$gcpRegion,zone=$gcpZone,nicInfo0-networkId=$gcpNetworkID,nicInfo0-subnetId=$gcpSubnetID,isPublicIp=false,cloudtype=gcp,volumetype=$gcpVolumeType,GCPkeys=$gcpkeyfile" -nowait
 ```
