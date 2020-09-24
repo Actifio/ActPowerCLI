@@ -714,7 +714,7 @@ Get-ActifioLogs
  
 In this user story we explore performing a system state recovery to the Cloud. 
 
-There are two steps needed
+There are two steps needed:
 
 1.   Determine the cloud specific details using the **udsinfo lssystemdetail** command
 1.   Build a **udstask mountimage** command using the input from step 1
@@ -729,8 +729,8 @@ udsinfo lssystemdetail -cloudtype VMware -delim :
 
 ### AWS Example
 
-Here is the current output for AWS.
-We focus on the required=true columns
+Here is the current output of **udsinfo lssystemdetail** for AWS.
+We focus on the **required=true** columns
 Your output might be different!
 
 | name     |     type  |    required | selection
@@ -759,7 +759,7 @@ We now focus on building our command, it needs to look like this:
 ```
 udstask mountimage -image $imageid -systemprops "vmname=$awsNewVMName,RegionCode=$awsRegion,nicInfo0-SecurityGroupId=$awsSecurityGroupID,nicInfo0-subnetId=$awsSubnetID,CloudType=aws,volumeType=$awsVolumeType,NetworkId=$awsNetworkID,AccessKeyID=$accesskeyid,SecretKey=$secretkey" -nowait
 ```
-So to determine each value lets look at the method we can use
+So to determine each value lets look at the method we can use the following methods:
 
 #### imageid
 
@@ -789,6 +789,8 @@ Currently it returns:
 * Magnetic
 * Provisioned IOPS SSD(Io1)
 
+Your output might be different!
+
 ##### RegionCode
 
 Use the output of
@@ -796,7 +798,7 @@ Use the output of
 udsinfo lssystemdetail -cloudtype aws 
 udsinfo lssystemdetail -cloudtype aws  | where-object name -eq RegionCode | select value
 ```
-There is a **RegionCode** column with valid values.
+There is a **RegionCode** column with valid values for your cloud type.
 
 ##### NetworkId
 
@@ -809,12 +811,6 @@ To understand what NIcInfo we need, we run this command:
 
 ```
 udsinfo lssystemdetail -cloudtype aws -structure nicinfo | select name
-
-name
-----
-SubnetId
-SecurityGroupId
-privateIpAddresses
 ```
 
 The output will show which fields are needed:
@@ -839,7 +835,10 @@ In our examples we use only one interface, with no private IP, so we get:
 ```
 nicInfo0-SecurityGroupId=$awsSecurityGroupID,nicInfo0-subnetId=$awsSubnetID
 ```
-
+Note the security group ID needs to be encased in square brackets as per the example shown below:
+```
+$awsSecurityGroupID = "[sg-5678]"
+```
 
 #### CSV file
 
