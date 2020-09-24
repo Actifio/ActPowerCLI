@@ -712,6 +712,8 @@ Get-ActifioLogs
 
 ## System State Recovery
  
+In this user stort we explore performing a system state recovery to the Cloud. 
+
 There are two steps needed
 
 1.   Determine the cloud specific details using the **udsinfo lssystemdetail** command
@@ -719,10 +721,147 @@ There are two steps needed
 
 To run the udsinfo lsystemdetail command, you need to know the target cloud, so you would use one of:
 
-udsinfo lssystemdetail -cloudtype AWS -delim ,
-udsinfo lssystemdetail -cloudtype Azure -delim ,
-udsinfo lssystemdetail -cloudtype gcp -delim ,
-udsinfo lssystemdetail -cloudtype VMware -delim ,
+udsinfo lssystemdetail -cloudtype AWS -delim :
+udsinfo lssystemdetail -cloudtype Azure -delim :
+udsinfo lssystemdetail -cloudtype gcp -delim :
+udsinfo lssystemdetail -cloudtype VMware -delim :
+
+
+### AWS Example
+
+Here is the current output for AWS.
+We focus on the required=true columns
+
+| name     |     type  |    required | selection
+| ---- |----  |    -------- |---------
+| CPU       |    number    |   |      Number of CPU
+| Memory     |   number     |  |      Memory in GB
+| OSType    |    string      |   |    OS Type
+| CloudType   |  string   | true  |   Cloud type
+| migratevm  |   boolean     ||       Migrate all volumes to cloud storage
+| volumeType  |  string  |  true  |   Amazon volumeTypes
+| IOPS         | number   ||          (Min: 100 IOPS, Max: 32000 IOPS)
+| tags    |      string        ||     property to apply tags to resources from Amazon
+| RegionCode |   string  |  true  |   Amazon region code
+| NetworkId   |  string   | true   |  VPC ID from Amazon
+| AccessKeyID  | string    |true    | Access Key ID
+| SecretKey   |  string  |  true  |   Secret Access Key
+| encryption  |  boolean  ||          Volumes that are created from encrypted snapshots are automatically encrypted, and volumes that are created from unencrypted snapshots are automatically unencrypted. If no snapshot is selected, you can choose to encrypt the volume.
+| encryptionKey | string    ||         Volumes that are created from encrypted snapshots are automatically encrypted, and volumes that are created from unencrypted snapshots are automatically unencrypted. If no snapshot is selected, you can choose to encrypt the volume.
+| NICInfo   |    structure | true  |   Amazon NIC Details
+| BootDiskSize | number        ||     Boot Disk Size in GB
+|
+	
+
+We now focus on building our command, it needs to look like this:
+
+```
+udstask mountimage -image $imageid -systemprops "vmname=$awsNewVMName,RegionCode=$awsRegion,nicInfo0-SecurityGroupId=$awsSecurityGroupID,nicInfo0-subnetId=$awsSubnetID,CloudType=aws,volumeType=$awsVolumeType,NetworkId=$awsNetworkID,AccessKeyID=$accesskeyid,SecretKey=$secretkey" -nowait
+```
+So to determine each value lets look at the method we can use
+
+#### imageid
+
+We need to learn an image ID using the application ID like this one:
+
+$latestsnap = udsinfo lsbackup -filtervalue "appid=4771&backupdate since 24 hours&jobclass=snapshot"
+
+#### CloudType
+
+Will be one of:
+
+* aws
+* azure
+* gcp
+* vmware
+
+
+##### volumeType
+
+The output of
+```
+udsinfo lssystemdetail -cloudtype aws  | where-object name -eq volumeType | select value
+```
+Currently it returns:
+* General Purpose (SSD)
+* Magnetic
+* Provisioned IOPS SSD(Io1)
+
+##### RegionCode
+
+The output of
+```
+udsinfo lssystemdetail -cloudtype aws 
+udsinfo lssystemdetail -cloudtype aws  | where-object name -eq RegionCode | select value
+```
+Has a **RegionCode** column with valid values.
+
+##### NetworkId
+
+This is the VPC ID.  We need to get this from the AWS Console.
+
+
+#### nicinfo
+
+To understand what NIcInfo we need, we run this command:
+
+```
+udsinfo lssystemdetail -cloudtype aws -structure nicinfo | select name
+
+name
+----
+SubnetId
+SecurityGroupId
+privateIpAddresses
+```
+
+The output will show which fields are needed:
+
+| name | type | required 
+| ---- | ---- | --------
+| NetworkId | string  | true         
+| SubnetId | string | true        
+| privateIpAddresses | string |  
+|  
+
+We need to get this information from the AWS Cloud Platform Console.
+
+
+#### CSV file
+
+We download this from the Service Account section of the IAM console.
+In this example we save it as a file av_accessKeys.csv
+
+We can then pull the info we need out of it
+
+
+####  Final AWS command
+
+We build our variables.  Because privateIpAddresses is not mandatory, we are not going to specify one.
+Note we are also only creating one NIC (nic 0).
+
+```
+$imageid = $latestsnap.id
+$awsNewVMName = "avtestvm1"
+$awsRegion = "us-east-1"
+$awsNetworkID = "vpc-1234"
+$awsSecurityGroupID = "[sg-5678]"
+$awsSubnetID = "subnet-9876"
+$awsVolumeType = "General Purpose (SSD)"
+$accesskeyscsv = "/Users/anthonyv/Downloads/av_accessKeys.csv"
+$importedcsv = Import-Csv -Path $accesskeyscsv
+$accesskeyid = $importedcsv.'Access key ID' 
+$secretkey = $importedcsv.'Secret access key' 
+```
+
+The resulting command looks like this:
+```
+udstask mountimage -image $imageid -systemprops "vmname=$awsNewVMName,RegionCode=$awsRegion,nicInfo0-SecurityGroupId=$awsSecurityGroupID,nicInfo0-subnetId=$awsSubnetID,CloudType=aws,volumeType=$awsVolumeType,NetworkId=$awsNetworkID,AccessKeyID=$accesskeyid,SecretKey=$secretkey" -nowait
+```
+
+
+
+
 
 ### GCP Example
 
@@ -790,7 +929,7 @@ We also need to add a zone section which is the region code with -a or -b or -c
 
 #### nicinfo
 
-To udnerstand what NIcInfo we need, we run this command:
+To understand what NIcInfo we need, we run this command:
 
 udsinfo lssystemdetail -cloudtype gcp -structure nicinfo
 
@@ -806,7 +945,7 @@ We need to get this information from the Google Cloud Platform Console.
 
 #### JSON file
 
-We download this from the Serbive Account sectiot of the IAM console.
+We download this from the Service Account section of the IAM console.
 In this example we save it as a file av.json
 Note that while it is not shown as mandatory, it is in reality a mandatory requirement.
 
@@ -824,7 +963,7 @@ $gcpZone = "us-east4-a"
 $gcpNetworkID = "default"
 $gcpSubnetID = "subnet-1"
 $gcpVolumeType = "SSD persistent disk"
-$gcpkeyfile = $gcpkey = [IO.File]::ReadAllText("C:\av\av.json")
+$gcpkeyfile = [IO.File]::ReadAllText("C:\av\av.json")
 ```
 
 The resulting command looks like this:
