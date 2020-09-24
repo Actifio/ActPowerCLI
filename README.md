@@ -708,3 +708,126 @@ Get-ActifioLogs
 ```
 
 
+# User Stories
+
+## System State Recovery
+ 
+There are two steps needed
+
+1.   Determine the cloud specific details using the **udsinfo lssystemdetail** command
+1.   Build a **udstask mountimage** command using the input from step 1
+
+To run the udsinfo lsystemdetail command, you need to know the target cloud, so you would use one of:
+
+udsinfo lssystemdetail -cloudtype AWS -delim ,
+udsinfo lssystemdetail -cloudtype Azure -delim ,
+udsinfo lssystemdetail -cloudtype gcp -delim ,
+udsinfo lssystemdetail -cloudtype VMware -delim ,
+
+### GCP Example
+
+Here is the current output for GCP.
+We focus on the required=true columns
+
+| name | type | required
+| ---- | ---- | --------
+| CPU	| number		
+| Memory	| number		
+| OSType	| string		
+| CloudType	| string  |	TRUE
+| migratevm	| boolean		
+| GCPkeys	| upload-string		
+| volumeType	| string	 |	TRUE
+| tags	| string		
+| alternateProjectId	| string		
+| hostprojectid	| string		
+| RegionCode	| string	 |	TRUE
+| NICInfo	| structure	| TRUE
+| BootDiskSize	| number		
+
+We now focus on building our command, it needs to look like this:
+
+```
+udstask mountimage -image $imageid -systemprops "vmname=$gcpNewVMName, regionCode=$gcpRegion,zone=$gcpZone,nicInfo0-subnetId=$gcpSubnetID,isPublicIp=false,cloudtype=gcp,nicInfo0-networkId=$gcpNetworkID,volumetype=$gcpVolumeType,GCPkeys=$gcpkeyfile" -nowait
+```
+So to determine each value lets look at the method we can use
+
+#### imageid
+
+We need to learn an image ID using the application ID like this one:
+
+udsinfo lsbackup -filtervalue "appid=4771&backupdate since 24 hours&jobclass=OnVault"
+
+#### CloudType
+
+Will be one of:
+
+* aws
+* azure
+* gcp
+* vmware
+
+
+##### volumeType
+
+The output of
+```
+udsinfo lssystemdetail -cloudtype gcp -delim ,
+```
+Has a **volumeType** column with valid values, which are currently:
+* SSD persistent disk
+* Standard persistent disk
+
+##### RegionCode
+
+The output of
+```
+udsinfo lssystemdetail -cloudtype gcp -delim ,
+```
+Has a **RegionCode** column with valid values.
+
+We also need to add a zone section which is the region code with -a or -b or -c
+
+#### nicinfo
+
+To udnerstand what NIcInfo we need, we run this command:
+
+udsinfo lssystemdetail -cloudtype gcp -structure nicinfo
+
+The output will show which fields are needed:
+
+| name | type | required 
+| ---- | ---- | --------
+| NetworkId | string  | true         
+| SubnetId | string | true        
+| privateIpAddresses | string |    
+
+We need to get this information from the Google Cloud Platform Console.
+
+#### JSON file
+
+We download this from the Serbive Account sectiot of the IAM console.
+In this example we save it as a file av.json
+Note that while it is not shown as mandatory, it is in reality a mandatory requirement.
+
+
+####  Final GCP command
+
+We build our variables.  Because privateIpAddresses is not mandatory, we are not going to specify one.
+We are also not going to specify hostprojectid or alternateProjectId but for some setups these may be needed.
+
+```
+$imageid = "9246556"
+$gcpNewVMName = "avtestvm"
+$gcpRegion = "us-east4"
+$gcpZone = "us-east4-a"
+$gcpNetworkID = "default"
+$gcpSubnetID = "subnet-1"
+$gcpVolumeType = "SSD persistent disk"
+$gcpkeyfile = $gcpkey = [IO.File]::ReadAllText("C:\av\av.json")
+```
+
+The resulting command looks like this:
+```
+udstask mountimage -image $imageid -systemprops "vmname=$gcpNewVMName, regionCode=$gcpRegion,zone=$gcpZone,nicInfo0-subnetId=$gcpSubnetID,isPublicIp=false,cloudtype=gcp,nicInfo0-networkId=$gcpNetworkID,volumetype=$gcpVolumeType,GCPkeys=$gcpkeyfile" -nowait
+```
