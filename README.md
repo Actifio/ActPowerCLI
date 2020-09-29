@@ -145,7 +145,7 @@ Confirm
 Are you sure you want to perform the Stop-Process operation on the following item: powershell(60)?
 [Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "Y"): A
 ```
-Start a new powershell session and you should see just on instance:
+Start a new powershell session and you should see just one instance:
 ```
 PS C:\Windows\system32> get-process | where-object {$_.ProcessName -eq "powershell"}
 
@@ -153,7 +153,7 @@ Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
 -------  ------    -----      -----     ------     --  -- -----------
     773      31    62112      75044       1.41  20160  19 powershell
 ```
-Now you can try and install again.
+Now run the install again.
 
 
 ## Usage
@@ -235,7 +235,7 @@ Note you can use **-quiet** to hide these messages.   This is handy when scripti
 
 Major  Minor  Build  Revision
 -----  -----  -----  --------
-10     0      1      12
+10     0      1      30
 ```
 
 ###  Example commands
@@ -321,7 +321,7 @@ Disconnect-Act
 
 #### Check your versions 
 ```
-$host.version        (need version 3.0 to 5.1)
+$host.version        (need version 3.0 and above)
 $PSVersionTable.CLRVersion       (need .NET 4.0 or above if using Windows PowerShell 4)
 ```
 #### Check your plugins
@@ -383,8 +383,8 @@ Disconnect-Act -quiet
 
 ## report sorting 
 
-In PowerShell 5-7 the output of all report commands is autosorted to make the data more readable.   
-You do disable this function by adding -p to the Connect-Act command.
+In PowerShell 5-7 the output of all report commands is auto-sorted to make the data more readable.   
+You do disable this function by adding -p to the Connect-Act command like this:
 ```
 Connect-Act 172.24.1.80 av -i -p
 ```
