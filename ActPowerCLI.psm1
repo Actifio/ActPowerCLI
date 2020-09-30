@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.26'
+# ModuleVersion = '10.0.1.31'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -1599,39 +1599,42 @@ Function generatepayload($arglist)
 
 	foreach ($arg in $arglist) 
 	{
-        # we handle force separately as it wont have a value and will steal the arg if we let it
-        if ($arg -eq "-force")
-        {
-            $currargtype = "value";
-            $udsopts = $udsopts + "&force=true"
-        } 
-        elseif ($arg.ToString().StartsWith("-")) 
-		{
-			# current argument is parameter
-			$currargtype = "param";
+        if ($arg)
+            {
+            # we handle force separately as it wont have a value and will steal the arg if we let it
+            if ($arg -eq "-force")
+            {
+                $currargtype = "value";
+                $udsopts = $udsopts + "&force=true"
+            } 
+            elseif ($arg.ToString().StartsWith("-")) 
+            {
+                # current argument is parameter
+                $currargtype = "param";
 
-			if ( $prevargtype -eq $currargtype -and $currargtype -eq "param" ) 
-			{
-				$udsopts = $udsopts + "true" 
+                if ( $prevargtype -eq $currargtype -and $currargtype -eq "param" ) 
+                {
+                    $udsopts = $udsopts + "true" 
+                }
+                $temparg = "&" + $arg.TrimStart("-")
+                $udsopts = $udsopts + $temparg + "=";
+            } 
+            else 
+            {
+                # current argument is a value
+                $currargtype = "value";
+                # if two values are together, then insert "argument" before the last one.
+                if ( $prevargtype -eq $currargtype -and $currargtype -eq "value" )
+                {
+                    $udsopts = $udsopts + "&argument=" 
+                }
+                $namepayload =  $arg
+                $encodedpayload = [System.Web.HttpUtility]::UrlEncode($namepayload)
+                $udsopts = $udsopts + $encodedpayload 
             }
-			$temparg = "&" + $arg.TrimStart("-")
-			$udsopts = $udsopts + $temparg + "=";
-		} 
-		else 
-		{
-			# current argument is a value
-			$currargtype = "value";
-			# if two values are together, then insert "argument" before the last one.
-			if ( $prevargtype -eq $currargtype -and $currargtype -eq "value" )
-			{
-				$udsopts = $udsopts + "&argument=" 
-            }
-            $namepayload =  $arg
-            $encodedpayload = [System.Web.HttpUtility]::UrlEncode($namepayload)
-			$udsopts = $udsopts + $encodedpayload 
-		}
 
-		$prevargtype = $currargtype;
+            $prevargtype = $currargtype;
+        }
 	}
 
 	# add a true if the last argument is a parameter 

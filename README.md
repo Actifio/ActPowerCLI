@@ -40,7 +40,7 @@ If you had a previously manually created install, where you downloaded from GitH
 Update-Module: Module 'ActPowerCLI' was not installed by using Install-Module, so it cannot be updated.
 ```
 
-###  PowerShell 7 only - Upgrades from PowerShell Gallery 
+### Upgrades from PowerShell Gallery 
 
 Note if you run 'Install-Module' to update an installed module, it will complain.  You need to run:
 ```

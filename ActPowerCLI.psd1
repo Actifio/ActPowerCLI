@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.30'
+ModuleVersion = '10.0.1.31'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -111,6 +111,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.31] 2020-09-30
+        If a uds command offers an empty variable as an argument, ignore it, let appliance complain if command is not valid.  This prevents .psm1:1608 char:17 error
+
         ## [10.0.1.30] 2020-09-20
         Improved module description for PowerShell Gallery users
 
