@@ -996,3 +996,108 @@ The resulting command looks like this:
 ```
 udstask mountimage -image $imageid -systemprops "vmname=$gcpNewVMName, regionCode=$gcpRegion,zone=$gcpZone,nicInfo0-networkId=$gcpNetworkID,nicInfo0-subnetId=$gcpSubnetID,isPublicIp=false,cloudtype=gcp,volumetype=$gcpVolumeType,GCPkeys=$gcpkeyfile" -nowait
 ```
+
+
+
+
+## Bulk unprotection of VMs
+
+In this scenario, a large number of VMs that were no longer required were removed from the vCenter. However, as those VMs were still being managed by Actifio at the time of removal from the VCenter, the following error message is being received constantly
+ 
+ ```
+Error 933 - Failed to find VM with matching BIOS UUID
+```
+
+
+### 1) Create a list of affected VMs   
+
+First we need to create a list of affected VMs.  The simplest way to do this is to run this command:
+
+There are two parameters:
+
+```
+-d 5        This means look at last 5 days.   You may want to look at more days or less 
+-e 933      This picks up jobs failing with error 933
+```
+
+This is the command we thus run (connect-act logs us into the appliance).
+We grab just the VMname and AppID of each affected VM and reduce to a unique list in a CSV file
+```
+connect-act 
+reportfailedjobs -d 5 -e 933 | select appname,appid | sort-object appname | Get-Unique -asstring | Export-Csv -Path .\missingvms.csv -NoTypeInformation
+```
+### 2) Edit your list if needed
+
+Now open your CSV file called missingvms.csv and go to the VMware administrator.
+Validate each VM is truly gone.
+Edit the CSV and remove any VMs you don't want to unprotect.   
+
+ 
+### 3) Unprotection script 
+
+Because we have a CSV file of affected VMs we can run this simple PowerShell script. 
+
+Import the list and validate the import worked by displaying the imported variable.  In this example we have only four apps.
+
+```
+PS /Users/anthonyv> $appstounmanage = Import-Csv -Path .\missingvms.csv
+PS /Users/anthonyv> $appstounmanage
+
+AppName      AppID
+-------      -----
+duoldapproxy 270976
+SYDWINDC1    362132
+SYDWINDC2    9687204
+SYDWINFS2    8595597
+```
+
+Then paste this script to validate each app has an SLA ID
+```
+foreach ($app in $appstounmanage)
+{ $slaid = udsinfo lssla -filtervalue appid=$($app.appid)
+write-host "Appid $($app.appid) has SLA ID $($slaid.id)" }
+```
+Output will be similar to this:
+```
+Appid 270976 has SLA ID 270998
+Appid 362132 has SLA ID 362144
+Appid 9687204 has SLA ID 9687222
+Appid 8595597 has SLA ID 8595649
+```
+If you want to build a backout plan, run this script now:
+```
+foreach ($app in $appstounmanage)
+{ $slaid = udsinfo lssla -filtervalue appid=$($app.appid)
+write-host "udstask mksla -appid $($app.appid) -slp $($slaid.slpid) -slt $($slaid.sltid)" }
+```
+It will produce a list of commands to re-protect all the apps.
+You would simply paste this list into your Powershell session:
+```
+udstask mksla -appid 270976 -slp 51 -slt 37776
+udstask mksla -appid 362132 -slp 51 -slt 4757
+udstask mksla -appid 9687204 -slp 51 -slt 37776
+udstask mksla -appid 8595597 -slp 51 -slt 4757
+```
+Now we are ready for the final step.  Run this script to unprotect the VMs:
+```
+foreach ($app in $appstounmanage)
+{ $slaid = udsinfo lssla -filtervalue appid=$($app.appid)
+udstask rmsla $($slaid.id) }
+```
+Output will look like this:
+```
+result status
+------ ------
+            0
+            0
+            0
+            0
+```
+### 4) Bulk deletion of the Applications
+
+If any of the Applications have images, it is not recommended you delete them, as this creates orphans apps and images.
+If you are determined to also delete them, run this script to delete the VMs from the Appliance.
+```
+foreach ($app in $appstounmanage)
+{ udstask rmapplication $($app.appid) }
+```
