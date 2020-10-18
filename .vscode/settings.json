@@ -1,0 +1,30 @@
+{
+    "cSpell.words": [
+        "SARG",
+        "actmaxapilimit",
+        "certaction",
+        "dashsep",
+        "hashtable",
+        "mdisk",
+        "mdiskgrp",
+        "messagetoprint",
+        "namepayload",
+        "notmatch",
+        "reportimages",
+        "reportlist",
+        "rmmdisk",
+        "sargopts",
+        "sargparms",
+        "sargsortordertest",
+        "testconnection",
+        "trimm",
+        "usvcinfo",
+        "usvctask",
+        "validresp"
+    ],
+    "cSpell.ignoreWords": [
+        "get",
+        "get priviledges",
+        "priviledges"
+    ]
+}

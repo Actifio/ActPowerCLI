@@ -122,6 +122,14 @@ Clear-Host
 
 $hostVersionInfo = (get-host).Version.Major
 
+# stop supporting PS3
+if ( $hostVersionInfo -lt "4" )
+{
+  Write-host "Minimum supported PowerShell version is 4.0   Detected PowerShell version $hostVersionInfo is below that."
+  Write-Host "Please upgrade your PowerShell version and run this installer again."
+  return
+}
+
 # print version we are installing
 if ( $hostVersionInfo -lt "5" )
 {

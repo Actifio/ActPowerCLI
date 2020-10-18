@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.31'
+# ModuleVersion = '10.0.1.32'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -267,6 +267,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     else
     {
+        $global:ACTPRIVILEGES = $resp.rights
         $env:ACTPRIVILEGES = $resp.rights
         $env:ACTSESSIONID = $resp.sessionid
         $env:acthost = $acthost
@@ -401,6 +402,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $env:actmaxapilimit = $null
     $env:IGNOREACTCERTS = $null
     $global:ACTSORTORDER = $null
+    $global:ACTPRIVILEGES = $null
     # Set the security protocol back to the old defaults
     if ($env:CUR_PROTS) 
     {
@@ -629,7 +631,7 @@ function reportlist ()
     }
     if (!($args))
     {
-        Get-SARGReport reportlist "-p"
+        Get-SARGReport reportlist "-p" | select-object ReportName,ReportFunction,FriendlyName,RequiredRoleRights
     } 
     else {
         Get-SARGReport reportlist $args
@@ -1415,14 +1417,14 @@ Function Get-Privileges
 
     #>
 
-    if ($env:ACTPRIVILEGES)
+    if ($ACTPRIVILEGES)
     {
         $privs = @()
-        $privcolumn = "" | Select-Object Priviledges
+        $privcolumn = "" | Select-Object Privileges
         foreach ($line in $ACTPRIVILEGES) {
-        $privcolumn.Priviledges = "$line"
+        $privcolumn.Privileges = "$line"
         $privs = $privs + $privcolumn
-        $privcolumn = "" | Select-Object Priviledges
+        $privcolumn = "" | Select-Object Privileges
         }
     }
     if ($privs)

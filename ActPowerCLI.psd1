@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.31'
+ModuleVersion = '10.0.1.32'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -111,6 +111,11 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.32] 2020-10-18
+        Handle role field in reportlist when it appears
+        Installer was allowing install into PS3, but PSD1 file was then refusing to allow the module to start.   So instead do not allow the install.
+        Get-Privileges output was blank, corrected this and heading typo
+
         ## [10.0.1.31] 2020-09-30
         If a uds command offers an empty variable as an argument, ignore it, let appliance complain if command is not valid.  This prevents .psm1:1608 char:17 error
 
@@ -157,12 +162,12 @@ PrivateData = @{
         Because report commands do not load as functions until after Connect-Act, this causes confusion.   Added reportlist as a discreet function to give useful error message.
         
         ## [10.0.1.16] 2020-06-18
-        All error messages that are locally generated will use the same format as appliance generated, making the behaviour more consistent and scriptable.
+        All error messages that are locally generated will use the same format as appliance generated, making the behavior more consistent and script able.
         
         ## [10.0.1.15] 2020-06-16
-        Added helpful exit message when Get-SARGReport is run without a subcommand, rather than no message
+        Added helpful exit message when Get-SARGReport is run without a sub-command, rather than no message
         When Get-SARGReport is run with -h will now show reportlist output rather than no message
-        Corrected issue where when Connect-Act was run with -quiet, user couldnt run any SARG reports 
+        Corrected issue where when Connect-Act was run with -quiet, user could not run any SARG reports 
         Added URL encoding to SARG payload
         Added code to support SARG help when it is supported on Appliance Side
         
@@ -170,7 +175,7 @@ PrivateData = @{
         Stop exporting private functions
         
         ## [10.0.1.13] 2020-06-14
-        Added missing cmdlets: Get-Priviledges, Get-LastSnap, Get-ActAppID  as functions
+        Added missing cmdlets: Get-Privileges, Get-LastSnap, Get-ActAppID  as functions
         Improved help
         
         ## [10.0.1.12] 2020-06-13
