@@ -19,7 +19,7 @@ The installer will install one of two versions:
 
 #### What about Windows PowerShell 3?
 
-It should work with Windows PowerShell Version 3 on the Windows Operating System that have .NET 4.5 installed, but no further testing is being done on this version
+Windows PowerShell Version 3 is no longer supported.
 
 ## Install
 
