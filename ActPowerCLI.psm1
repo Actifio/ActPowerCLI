@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.32'
+# ModuleVersion = '10.0.1.33'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -335,7 +335,35 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         
         # now we create functions for SARG
         New-SARGFuncs
-    }
+
+        # finally we do command completion for uds commands
+        $env:UDSINFOCMDS = (udsinfo -h).name
+        $env:UDSTASKCMDS = (udstask -h).name
+        $udsinfoSubCommandCompletion = {
+            param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+            if ( $wordToComplete -eq "" ) 
+            {
+                $ENV:UDSINFOCMDS -split " " 
+            }
+            else
+            {
+                $ENV:UDSINFOCMDS -split " " -match "^$wordToComplete" 
+            }
+        }
+        $udstaskSubCommandCompletion = {
+            param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+            if ( $wordToComplete -eq "" ) 
+            {
+                $ENV:UDSTASKCMDS -split " " 
+            }
+            else
+            {
+                $ENV:UDSTASKCMDS -split " " -match "^$wordToComplete" 
+            }
+        }
+        Register-ArgumentCompleter -CommandName udsinfo -Parameter subcommand -ScriptBlock $udsinfoSubCommandCompletion
+        Register-ArgumentCompleter -CommandName udstask -Parameter subcommand -ScriptBlock $udstaskSubCommandCompletion
+    }   
 } 
 
 
@@ -401,6 +429,8 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $env:ACTSORTOVERRIDE = $null
     $env:actmaxapilimit = $null
     $env:IGNOREACTCERTS = $null
+    $env:UDSINFOCMDS = $null
+    $env:UDSTASKCMDS = $null
     $global:ACTSORTORDER = $null
     $global:ACTPRIVILEGES = $null
     # Set the security protocol back to the old defaults

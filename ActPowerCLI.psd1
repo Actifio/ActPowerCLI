@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.32'
+ModuleVersion = '10.0.1.33'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -111,6 +111,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.33] 2020-11-04
+        Added command completion for udsinfo and udstask commands
+
         ## [10.0.1.32] 2020-10-18
         Handle role field in reportlist when it appears
         Installer was allowing install into PS3, but PSD1 file was then refusing to allow the module to start.   So instead do not allow the install.
