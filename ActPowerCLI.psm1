@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.33'
+# ModuleVersion = '10.0.1.34'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -220,7 +220,9 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     # build a vendorkey
     $moduledetails = Get-Module ActPowerCLI
-    $vendorkey = "ActPowerCLI-" + $moduledetails.version.ToString()
+    $platform=$PSVersionTable.platform
+    if (!($platform)) { $platform = 'Win32NT'}
+    $vendorkey = "ActPowerCLI-" + $moduledetails.version.ToString() + "_" + $platform + "-PSVersion" + $hostVersionInfo
 
     # password needs to be sent as base64 per API Guide
     $UnsecurePassword = [System.Net.NetworkCredential]::new("", $passwordenc).Password

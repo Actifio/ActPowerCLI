@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.33'
+ModuleVersion = '10.0.1.34'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -111,6 +111,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.34] 2020-11-09
+        Make PS version appear in appliance audit log
+
         ## [10.0.1.33] 2020-11-04
         Added command completion for udsinfo and udstask commands
 
