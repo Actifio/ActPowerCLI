@@ -2,6 +2,13 @@
 A Powershell module to manage Actifio Appliances
 
 
+### Table of Contents
+**[Install](#install)**<br>
+**[Usage](#usage)**<br>
+**[FAQ](#faq)**<br>
+**[User Stories](#user-stories)**<br>
+
+
 ## What versions of PowerShell and Operating Systems will this module work with?
 
 * It will work with Windows PowerShell Version 4 that has .NET 4.5 installed
