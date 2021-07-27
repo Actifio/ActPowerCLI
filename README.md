@@ -1109,3 +1109,82 @@ If you are determined to also delete them, run this script to delete the VMs fro
 foreach ($app in $appstounmanage)
 { udstask rmapplication $($app.appid) }
 ```
+
+## Slot Management
+
+Sometimes it be necessary to modidy the number of slots allocated to certain job types.   Slots are used as a pacing mechanism.   For each job type there is resserved number of slots which guarantees at least that many of that job can start and then a maximum number for each job type.    To see all slot settings use this command:
+```
+udsinfo getparameter |select *slot*
+```
+For a job type to exceed its reserved count and get to its maximum count, we need unused and unreserved slots to be available.  you can see the count of unreserved slots with this command:
+```
+PS /home/avw_google_com>  udsinfo getparameter -param unreservedslots
+
+unreservedslots
+---------------
+12
+```
+### Setting a parameter
+Use this syntax to set a parameter, changing the param and value to suit:
+```
+udstask setparameter -param unreservedslots -value 12
+udstask setparameter -param reservedsnapslots -value 9
+udstask setparameter -param maxsnapslots -value 12
+udstask setparameter -param reservedvaultslots -value 4
+udstask setparameter -param maxondemandslots -value 4
+udstask setparameter -param reservedondemandslots -value 3
+udstask setparameter -param maxondemandslots -value 6
+```
+
+### Snapshot slot management
+
+So in this example we can always have at least 9 snapshot jobs running because we have 9 reserved slots.  However the maximum for snapshot jobs is 12, which means that if there are any unreserved slots not in use,  then they can be used to run those three additional snapshot jobs.
+
+```
+PS /home/avw_google_com>  udsinfo getparameter -param reservedsnapslots
+
+reservedsnapslots
+-----------------
+9
+
+PS /home/avw_google_com>  udsinfo getparameter -param maxsnapslots
+
+maxsnapslots
+------------
+12
+
+```
+
+### OnVault slot management
+So in this example we can always have at least 4 OnVault jobs running because we have 4 reserved slots.  However the maximum for OnVault jobs is also 4, which means that we cannot use unreserved slots.   We need to either set both values to a larger value, or set maxvaultslots to a larger value
+
+```
+PS /home/avw_google_com>  udsinfo getparameter -param reservedvaultslots
+
+reservedvaultslots
+------------------
+4
+
+PS /home/avw_google_com>  udsinfo getparameter -param maxvaultslots
+
+maxvaultslots
+-------------
+4
+```
+
+### Mount job slot command
+Mount jobs are considered on-demand jobs.  So in this example we can always have at least 3 mount jobs running because we have 3 reserved slots.  However the maximum for on-demand jobs is 6, which means that if there are any unreserved slots not in use,  then they can be used to run those three additional mount jobs.
+
+```
+PS /home/avw_google_com>  udsinfo getparameter -param reservedondemandslots
+
+reservedondemandslots
+---------------------
+3
+
+PS /home/avw_google_com>  udsinfo getparameter -param maxondemandslots
+
+maxondemandslots
+----------------
+6
+```
