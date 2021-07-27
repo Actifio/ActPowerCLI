@@ -1112,11 +1112,11 @@ foreach ($app in $appstounmanage)
 
 ## Slot Management
 
-Sometimes it be necessary to modidy the number of slots allocated to certain job types.   Slots are used as a pacing mechanism.   For each job type there is resserved number of slots which guarantees at least that many of that job can start and then a maximum number for each job type.    To see all slot settings use this command:
+Sometimes it may be necessary to modify the number of slots allocated to certain job types.   Slots are used as a pacing mechanism.   For each job type there is resserved number of slots which guarantees at least that many of that jobtype can start.  Then there is a maximum slot count for each job type.    To see all slot settings use this command:
 ```
 udsinfo getparameter |select *slot*
 ```
-For a job type to exceed its reserved count and get to its maximum count, we need unused and unreserved slots to be available.  you can see the count of unreserved slots with this command:
+For a job type to exceed its reserved count and get to its maximum count, we need unreserved slots to be available.  You can see the value of unreserved slots with this command:
 ```
 PS /home/avw_google_com>  udsinfo getparameter -param unreservedslots
 
@@ -1128,10 +1128,13 @@ unreservedslots
 Use this syntax to set a parameter, changing the param and value to suit:
 ```
 udstask setparameter -param unreservedslots -value 12
+
 udstask setparameter -param reservedsnapslots -value 9
 udstask setparameter -param maxsnapslots -value 12
+
 udstask setparameter -param reservedvaultslots -value 4
 udstask setparameter -param maxondemandslots -value 4
+
 udstask setparameter -param reservedondemandslots -value 3
 udstask setparameter -param maxondemandslots -value 6
 ```
@@ -1173,7 +1176,7 @@ maxvaultslots
 ```
 
 ### Mount job slot command
-Mount jobs are considered on-demand jobs.  So in this example we can always have at least 3 mount jobs running because we have 3 reserved slots.  However the maximum for on-demand jobs is 6, which means that if there are any unreserved slots not in use,  then they can be used to run those three additional mount jobs.
+Mount jobs are considered on-demand jobs.  So in this example we coukd have up to 3 mount jobs running because we have 3 reserved slots (provided other on-demand jobs are not using those slots).  However the maximum for on-demand jobs is 6, which means that if there are any unreserved slots not in use,  then they can be used to run those three additional mount jobs.
 
 ```
 PS /home/avw_google_com>  udsinfo getparameter -param reservedondemandslots
