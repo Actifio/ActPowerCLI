@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.34'
+# ModuleVersion = '10.0.1.35'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -39,7 +39,7 @@ function psfivecerthandler
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 }
 
-function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit) 
+function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [string]$passwordfile, [switch][alias("q")]$quiet,[switch][alias("p")]$printsession,[switch][alias("i")]$ignorecerts,[switch][alias("s")]$sortoverride,[switch][alias("f")]$sortoverfile,[int]$actmaxapilimit,[int]$timeout) 
 {
     <#
     .SYNOPSIS
@@ -110,6 +110,17 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         $env:actmaxapilimit = 0
     }
 
+    if ($timeout)
+    {
+        $env:timeout = $timeout
+    }
+
+    if ((!($timeout))  -and ($env:timeout -eq $null))
+    {
+        $env:timeout = 15
+    }
+
+
     if (!($acthost))
     {
     $acthost = Read-Host "IP or Name of VDP"
@@ -120,15 +131,15 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     {
         Try 
         {
-            $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/version -TimeoutSec 15
+            $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/version -TimeoutSec $env:timeout
         } 
         Catch 
         { 
             $RestError = $_
         }
-        if ($RestError -like "The operation was canceled.")
+        if ($RestError -like "*was canceled*")
         {
-            Get-ActErrorMessage -messagetoprint  "No response was received from $acthost after 15 seconds"
+            Get-ActErrorMessage -messagetoprint  "No response was received from $acthost after $env:timeout seconds"
             return;
         }
         elseif ($RestError -like "Connection refused")
@@ -234,23 +245,23 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     {
         if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:timeout
         }
         else 
         {
-            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec 15
+            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:timeout
         }
     }
     Catch
     {
         $RestError = $_
     }
-    if ($RestError -like "The operation was canceled.")
+    if ($RestError -like "*was canceled*")
     {
-        Get-ActErrorMessage -messagetoprint "No response was received from $acthost after 15 seconds"
+        Get-ActErrorMessage -messagetoprint "No response was received from $acthost after $env:timeout seconds"
         return;
     }
-    elseif ($RestError -like "Connection refused")
+    elseif ($RestError -like "Connection refused*")
     {
         Get-ActErrorMessage -messagetoprint "Connection refused received from $acthost"
         return;
@@ -264,7 +275,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         }
         else
         {
-            $loginfailure
+            Get-ActErrorMessage -messagetoprint "$loginfailure"
         }
     }
     else
@@ -397,11 +408,11 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     {
         if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
-            $null = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec 15
+            $null = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec $env:timeout
         }
         else 
         {
-            $null = Invoke-RestMethod -Method POST -Uri $Url  -TimeoutSec 15
+            $null = Invoke-RestMethod -Method POST -Uri $Url  -TimeoutSec $env:timeout
         }
     }
     Catch
@@ -1425,12 +1436,25 @@ Function Get-ActAPIDataPost
 # generate an error message
 function Get-ActErrorMessage ([string]$messagetoprint)
 {
+<#  
+    .SYNOPSIS
+    Prints a message in a format that makes it looks like an error
 
-        $acterror = @()
-        $acterrorcol = "" | Select-Object errormessage
-        $acterrorcol.errormessage = "$messagetoprint"
-        $acterror = $acterror + $acterrorcol
-        $acterror
+    .DESCRIPTION
+    When VDP returns an error you will get an errormessage and often an errorcode.
+    But if the module itself generates an error we want it to look like a proper error with the same format.
+    This also makes it easy to script, by looking for errormessage in returned data.
+
+    .NOTES
+    Written by Anthony Vandewerdt
+    
+    #>
+
+    $acterror = @()
+    $acterrorcol = "" | Select-Object errormessage
+    $acterrorcol.errormessage = "$messagetoprint"
+    $acterror = $acterror + $acterrorcol
+    $acterror
 }
 
 

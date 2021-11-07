@@ -73,36 +73,28 @@ function RemoveModuleContent
 
 function CreateModuleContent
 {
-  # Attempts to create a new folder and copy over the ActPowerCLI Module contents
-  try
-  {
-    $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI_PS3\* -Recurse | Unblock-File
-    $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
-    $null = Copy-Item $PSScriptRoot\ActPowerCLI_PS3\* $InstallPath -Force -Recurse -ErrorAction Stop
-    $null = Test-Path -Path $InstallPath -ErrorAction Stop
-    
-    Write-Host -Object "`nInstallation successful."
-  }
-  catch 
-  {
-    throw $_
-  }
-}
-
-function CreateModuleContent7
-{
+  $platform=$PSVersionTable.platform
   # Attempts to create a new folder and copy over the ActPowerCLI Module contents
   try
   {
     $PSScriptRoot
-    $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI* -Recurse | Unblock-File
+    if ( $platform -notmatch "Unix" )
+    {
+      $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI* -Recurse | Unblock-File
+    }
     $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
     $null = Copy-Item $PSScriptRoot\ActPowerCLI.psm1 $InstallPath -Force -Recurse -ErrorAction Stop
     $null = Copy-Item $PSScriptRoot\ActPowerCLI.psd1 $InstallPath -Force -Recurse -ErrorAction Stop
     $null = Copy-Item $PSScriptRoot\ActPowerCLI_SortOrder.csv $InstallPath -Force -Recurse -ErrorAction Stop
     $null = Test-Path -Path $InstallPath -ErrorAction Stop
-    
-    Write-Host -Object "`nInstallation successful."
+    $commandcheck = get-command -module ActPowerCLI
+    if (!($commandcheck))
+    {
+      Write-Host -Object "`nInstallation failed."
+    }
+    else {
+      Write-Host -Object "`nInstallation successful."
+    }
   }
   catch 
   {
@@ -118,33 +110,143 @@ function ReportActPowerCLI
 }
 
 ### Code
-Clear-Host
 
 $hostVersionInfo = (get-host).Version.Major
 
-# stop supporting PS3
-if ( $hostVersionInfo -lt "4" )
+# stop supporting PS4
+if ( $hostVersionInfo -lt "5" )
 {
-  Write-host "Minimum supported PowerShell version is 4.0   Detected PowerShell version $hostVersionInfo is below that."
+  Write-Host "This module only works with PowerShell Version 5 or above.  You are running version $hostVersionInfo."
   Write-Host "Please upgrade your PowerShell version and run this installer again."
   return
 }
 
 # print version we are installing
-if ( $hostVersionInfo -lt "5" )
+Import-LocalizedData -BaseDirectory $PSScriptRoot\ -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
+
+function silentinstall0
 {
-    Import-LocalizedData -BaseDirectory $PSScriptRoot\ActPowerCLI_PS3 -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
-    Write-host 'Detected PowerShell version:   ' $hostVersionInfo
-    Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
-    Write-host ""
+  Write-host 'Detected PowerShell version:   ' $hostVersionInfo
+  Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
+  $platform=$PSVersionTable.platform
+  # if we find an install then we upgrade it
+  [Array]$ActInstall = GetActPowerCLIInstall
+  if ($ActInstall.name.count -gt 1)
+  {
+    Write-Host -Object "`nMultipe installations detected.  Silent Installation failed."
+  }
+  if ($ActInstall.name.count -eq 1)
+  {
+    $InstallPath = $ActInstall.ModuleBase
+    Write-host 'Found ActPowerCLI version:     ' $ActInstall.Version 'in ' $InstallPath 
+    Remove-Item -Path $InstallPath -Recurse -Force -ErrorAction Stop -Confirm:$false
+  }
+  else 
+  {
+    $InstallPathList = GetPSModulePath
+    $InstallPath = $InstallPathList[0]
+    if ( $platform -notmatch "Unix" )
+    {
+      $InstallPath = $InstallPath + '\ActPowerCLI\'
+    }
+    else {
+      $InstallPath = $InstallPath + '/ActPowerCLI/'
+    }
+    
+  }
+  
+  if ( $platform -notmatch "Unix" )
+  {
+  $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI* -Recurse | Unblock-File
+  }
+  $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
+  $null = Copy-Item $PSScriptRoot\ActPowerCLI* $InstallPath -Force -Recurse -ErrorAction Stop
+  $null = Test-Path -Path $InstallPath -ErrorAction Stop
+  $commandcheck = get-command -module ActPowerCLI
+  if (!($commandcheck))
+  {
+    Write-Host 'Silent Installation failed.'
+  }
+  else {
+    Write-Host 'Installed ActPowerCLI version: ' $ActModuleData.ModuleVersion 'in ' $InstallPath 
+  }
+  exit
 }
-else 
+
+function silentinstall
 {
-    Import-LocalizedData -BaseDirectory $PSScriptRoot\ -FileName ActPowerCLI.psd1 -BindingVariable ActModuleData
-    Write-host 'Detected PowerShell version:   ' $hostVersionInfo
-    Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
-    Write-host ""
+  Write-host 'Detected PowerShell version:   ' $hostVersionInfo
+  Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
+  $platform=$PSVersionTable.platform
+  # if we find an install then we upgrade it
+  [Array]$ActInstall = GetActPowerCLIInstall
+  if ($ActInstall.name.count -gt 1)
+  {
+    Write-Host -Object "`nMultipe installations detected.  Silent Installation failed."
+  }
+  if ($ActInstall.name.count -eq 1)
+  {
+    $InstallPath = $ActInstall.ModuleBase
+    Write-host 'Found ActPowerCLI version:     ' $ActInstall.Version 'in ' $InstallPath 
+    Remove-Item -Path $InstallPath -Recurse -Force -ErrorAction Stop -Confirm:$false
+  }
+  else 
+  {
+    $InstallPathList = GetPSModulePath
+    $InstallPath = $InstallPathList[1]
+    if ( $platform -notmatch "Unix" )
+    {
+      $InstallPath = $InstallPath + '\ActPowerCLI\'
+    }
+    else {
+      $InstallPath = $InstallPath + '/ActPowerCLI/'
+    }
+    
+  }
+  
+  if ( $platform -notmatch "Unix" )
+  {
+  $null = Get-ChildItem -Path $PSScriptRoot\ActPowerCLI* -Recurse | Unblock-File
+  }
+  $null = New-Item -ItemType Directory -Path $InstallPath -Force -ErrorAction Stop
+  $null = Copy-Item $PSScriptRoot\ActPowerCLI* $InstallPath -Force -Recurse -ErrorAction Stop
+  $null = Test-Path -Path $InstallPath -ErrorAction Stop
+  $commandcheck = get-command -module ActPowerCLI
+  if (!($commandcheck))
+  {
+    Write-Host 'Silent Installation failed.'
+  }
+  else {
+    Write-Host 'Installed ActPowerCLI version: ' $ActModuleData.ModuleVersion 'in ' $InstallPath 
+  }
+  exit
 }
+
+if ($args[0] -eq "-silentinstall0")
+{
+  silentinstall0
+}
+
+if ($args[0] -eq "-silentinstall")
+{
+  silentinstall
+}
+
+if ($args[0] -eq "-silentuninstall")
+{
+  [Array]$ActInstall = GetActPowerCLIInstall
+  foreach ($Location in ([Array]$ActInstall = GetActPowerCLIInstall).ModuleBase)
+        {
+        $InstallPath = $Location
+        Remove-Item -Path $InstallPath -Recurse -Force -ErrorAction Stop -Confirm:$false   
+        }
+      exit
+}
+Clear-Host
+Write-host 'Detected PowerShell version:   ' $hostVersionInfo
+Write-host 'Downloaded ActPowerCLI version:' $ActModuleData.ModuleVersion
+Write-host ""
+
 
 [Array]$ActInstall = GetActPowerCLIInstall
 if ($ActInstall.Length -gt 0)
@@ -171,15 +273,8 @@ if ($ActInstall.Length -gt 0)
     }
     else
     {
-        RemoveModuleContent
-        if ( $hostVersionInfo -lt "5" )
-        {
-            CreateModuleContent
-        }
-        else 
-        {
-            CreateModuleContent7
-        }
+      RemoveModuleContent
+      CreateModuleContent
     }
 }
 else
@@ -189,16 +284,9 @@ else
     Write-Host ""
     $InstallPath = InstallMenu -InstallPathList (GetPSModulePath) -InstallAction installation
     $InstallPath = $InstallPath + '\ActPowerCLI\'
-    if ( $hostVersionInfo -lt "5" )
-    {
-        CreateModuleContent
-    }
-    else 
-    {
-        CreateModuleContent7
-    }
+    CreateModuleContent
 }
 
 
 Write-Host -Object "`nActPowerCLI Module installation location(s):"
-ReportActPowerCLI | Format-Table
+Get-Module -ListAvailable -Name ActPowerCLI -ErrorAction SilentlyContinue | Select-Object -Property Name, Version, ModuleBase | Format-Table
