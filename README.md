@@ -11,7 +11,6 @@ A Powershell module to manage Actifio Appliances
 
 ## What versions of PowerShell and Operating Systems will this module work with?
 
-* It will work with Windows PowerShell Version 4 that has .NET 4.5 installed
 * It will work with Windows PowerShell Version 5 (no requirement for .NET)
 * It should work with PowerShell Version 6 on Linux, Mac OS and Windows Operating Systems (no requirement for .NET).  No testing is being done on PS6.
 * It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems (no requirement for .NET) 
@@ -24,9 +23,9 @@ The installer will install one of two versions:
 * ActPowerCLI Version 10.0.1.x  is for Windows PowerShell 5 and PowerShell 6/7 and can be installed from the GitHub zip file or PowerShell Gallery
 * ActPowerCLI Version 10.0.0.x  is for Windows PowerShell 4 and can be installed from the GitHub zip file
 
-#### What about Windows PowerShell 3?
+#### What about Windows PowerShell 3 and 4?
 
-Windows PowerShell Version 3 is no longer supported.
+Windows PowerShell Version 3 or 4 is no longer supported.  PS 3 and 4 relied on a DLL.  PS 5 and above uses pure powershell.
 
 ## Install
 
@@ -108,6 +107,15 @@ Common upgrade issues are solved by:
 * Closing open PowerShell Sessions that are using the module.   Make sure to close all other sessions.   Sometimes you literally need to close every session and open one fresh one.
 * Unblocking the downloaded zip file.
 * Running the PowerShell session as Administrator, depending on where current installs are and where you want to install to.
+
+#### Silent install
+
+You can run a silent install by adding -silentinstall or -silentinstall0
+-silentinstall0 will the module in 'slot 0'
+-silentinstall will the module in 'slot 1'
+By slot we mean the output of $env:PSModulePath where 0 is the first module, 1 is the second module and so on.
+Note that if the module is already installed, then if you specify **-silentinstall** it will reinstall in the same folder.
+
 
 #### GITHUB Install fails with Access to the path 'ActPowerCLI.dll' is denied.
 
@@ -233,6 +241,14 @@ Or login to the Actifio cluster using the password file created in the previous 
 ```
 Connect-Act 10.61.5.114 -actuser admin -passwordfile "c:\temp\password.key" -ignorecerts
 ```
+
+#### Default timeout
+
+The default timeout is 15 seconds.   You can change this with -timeout XX when you run connect-act.  For instance to set the timeout to 5 seconds:
+```
+Connect-Act 10.61.5.114 admin -ignorecerts -timeout 5
+```
+
 
 Note you can use **-quiet** to hide these messages.   This is handy when scripting.
 

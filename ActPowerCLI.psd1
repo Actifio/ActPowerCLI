@@ -112,6 +112,7 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = '
         ## [10.0.1.35] 2021-11-08
+        Finally removed all PS4 content.  The DLL is now finally gone.  This module will only support PS5 going forward
         Added configurable timeout using -timeout with connect-act
         Added silent install
         Corrected issue where timeout was not being reported as an error due to missing * in the like statements
