@@ -25,7 +25,7 @@ The installer will install one of two versions:
 
 #### What about Windows PowerShell 3 and 4?
 
-Windows PowerShell Version 3 or 4 is no longer supported.  PS 3 and 4 relied on a DLL.  PS 5 and above uses pure powershell.
+Windows PowerShell Version 3 or 4 are no longer supported.  PS 3 and 4 relied on a DLL where PS 5 and above uses pure PowerShell.
 
 ## Install
 
@@ -111,9 +111,11 @@ Common upgrade issues are solved by:
 #### Silent install
 
 You can run a silent install by adding -silentinstall or -silentinstall0
--silentinstall0 will the module in 'slot 0'
--silentinstall will the module in 'slot 1'
-By slot we mean the output of $env:PSModulePath where 0 is the first module, 1 is the second module and so on.
+
+* -silentinstall0 will the module in 'slot 0'
+* -silentinstall will the module in 'slot 1'
+
+By slot we mean the output of **$env:PSModulePath** where 0 is the first module in the list, 1 is the second module and so on.
 Note that if the module is already installed, then if you specify **-silentinstall** it will reinstall in the same folder.
 
 
