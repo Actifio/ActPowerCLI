@@ -444,6 +444,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $env:IGNOREACTCERTS = $null
     $env:UDSINFOCMDS = $null
     $env:UDSTASKCMDS = $null
+    $env:timeout = $null
     $global:ACTSORTORDER = $null
     $global:ACTPRIVILEGES = $null
     # Set the security protocol back to the old defaults
