@@ -137,7 +137,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         { 
             $RestError = $_
         }
-        if ($RestError -like "*was canceled*")
+        if (($RestError -like "*was canceled*") -or ($RestError -like "*The operation has timed out*"))
         {
             Get-ActErrorMessage -messagetoprint  "No response was received from $acthost after $env:timeout seconds"
             return;
@@ -256,7 +256,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     {
         $RestError = $_
     }
-    if ($RestError -like "*was canceled*")
+    if (($RestError -like "*was canceled*") -or ($RestError -like "*The operation has timed out*"))
     {
         Get-ActErrorMessage -messagetoprint "No response was received from $acthost after $env:timeout seconds"
         return;
@@ -275,7 +275,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         }
         else
         {
-            Get-ActErrorMessage -messagetoprint "$loginfailure"
+            Get-ActErrorMessage -messagetoprint "$RestError"
         }
     }
     else
