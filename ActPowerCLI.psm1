@@ -142,10 +142,22 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
             Get-ActErrorMessage -messagetoprint  "No response was received from $acthost after $env:timeout seconds"
             return;
         }
-        elseif ($RestError -like "Connection refused")
+        elseif (($RestError -like "Connection refused") -or ($RestError -like "Unable to connect to the remote server"))
         {
             Get-ActErrorMessage -messagetoprint  "Connection refused received from $acthost"
             return;
+        }
+        elseif ($RestError -like "{*")
+        {    
+            $loginfailure = Test-ActJSON $RestError
+            if ( ($loginfailure.err_code) -and (!($loginfailure.errormessage)) )
+            {
+                Get-ActErrorMessage -messagetoprint "Login failed.  You may be trying to login to an AGM"
+            }
+            else
+            {
+                $loginfailure
+            }
         }
         elseif ($RestError) 
         {
@@ -261,13 +273,13 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         Get-ActErrorMessage -messagetoprint "No response was received from $acthost after $env:timeout seconds"
         return;
     }
-    elseif ($RestError -like "Connection refused*")
+    elseif (($RestError -like "Connection refused") -or ($RestError -like "Unable to connect to the remote server"))
     {
         Get-ActErrorMessage -messagetoprint "Connection refused received from $acthost"
         return;
     }
-    elseif ($RestError) 
-    {
+    elseif ($RestError -like "{*")
+    {    
         $loginfailure = Test-ActJSON $RestError
         if ( ($loginfailure.err_code) -and (!($loginfailure.errormessage)) )
         {
@@ -275,8 +287,12 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         }
         else
         {
-            Get-ActErrorMessage -messagetoprint "$RestError"
+            $loginfailure
         }
+    }
+    elseif ($RestError) 
+    {
+        Get-ActErrorMessage -messagetoprint "$RestError"
     }
     else
     {
