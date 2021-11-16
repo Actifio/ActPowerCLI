@@ -108,15 +108,25 @@ Common upgrade issues are solved by:
 * Unblocking the downloaded zip file.
 * Running the PowerShell session as Administrator, depending on where current installs are and where you want to install to.
 
-#### Silent install
+#### Silent install using downloaded github installer
 
 You can run a silent install by adding -silentinstall or -silentinstall0
 
-* -silentinstall0 will the module in 'slot 0'
-* -silentinstall will the module in 'slot 1'
+* **-silentinstall0** or **-s0** will install the module in 'slot 0'
+* **-silentinstall** or **-s** will install the module in 'slot 1' or in the same location where it is currenly installed
+* **-silentuninstall** or **-u** will silently uninstall the module.   You may need to exit the session to remove the module from memory
 
 By slot we mean the output of **$env:PSModulePath** where 0 is the first module in the list, 1 is the second module and so on.
-Note that if the module is already installed, then if you specify **-silentinstall** it will reinstall in the same folder.
+Note that if the module is already installed, then if you specify **-silentinstall** or **-s** it will reinstall in the same folder.
+
+Usage example:
+```
+PS /Users/avw> ./ActPowerCLI/Install-ActPowerCLI.ps1 -s0
+Detected PowerShell version:    7
+Downloaded ActPowerCLI version: 10.0.1.36
+Installed ActPowerCLI version:  10.0.1.36 in  /Users/avw/.local/share/powershell/Modules/ActPowerCLI/
+PS /Users/avw>
+```
 
 
 #### GITHUB Install fails with Access to the path 'ActPowerCLI.dll' is denied.
