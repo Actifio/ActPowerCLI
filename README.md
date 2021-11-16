@@ -21,7 +21,6 @@ It will be handled automatically by the included installer.
 The installer will install one of two versions:
 
 * ActPowerCLI Version 10.0.1.x  is for Windows PowerShell 5 and PowerShell 6/7 and can be installed from the GitHub zip file or PowerShell Gallery
-* ActPowerCLI Version 10.0.0.x  is for Windows PowerShell 4 and can be installed from the GitHub zip file
 
 #### What about Windows PowerShell 3 and 4?
 
