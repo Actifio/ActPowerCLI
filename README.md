@@ -101,10 +101,10 @@ Common upgrade issues are solved by:
 
 #### Silent install using downloaded github installer
 
-You can run a silent install by adding -silentinstall or -silentinstall0
+You can run a silent install by adding **-silentinstall** or **-silentinstall0**
 
 * **-silentinstall0** or **-s0** will install the module in 'slot 0'
-* **-silentinstall** or **-s** will install the module in 'slot 1' or in the same location where it is currenly installed
+* **-silentinstall** or **-s** will install the module in 'slot 1' or in the same location where it is currently installed
 * **-silentuninstall** or **-u** will silently uninstall the module.   You may need to exit the session to remove the module from memory
 
 By slot we mean the output of **$env:PSModulePath** where 0 is the first module in the list, 1 is the second module and so on.
