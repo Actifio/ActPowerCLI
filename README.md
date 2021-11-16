@@ -112,11 +112,13 @@ Common upgrade issues are solved by:
 
 You can run a silent install by adding -silentinstall or -silentinstall0
 
-* -silentinstall0 will the module in 'slot 0'
+* -silentinstall0 or -s0 will the module in 'slot 0'
 * -silentinstall will the module in 'slot 1'
+* -s will install the module either in the same location where it is currenly installed, or into the '1' location.
+* -silentuninstall or -u will silently uninstall the module.   You may need to exit the session to remove the module from memory
 
 By slot we mean the output of **$env:PSModulePath** where 0 is the first module in the list, 1 is the second module and so on.
-Note that if the module is already installed, then if you specify **-silentinstall** it will reinstall in the same folder.
+Note that if the module is already installed, then if you specify **-silentinstall** or **-s** it will reinstall in the same folder.
 
 
 #### GITHUB Install fails with Access to the path 'ActPowerCLI.dll' is denied.

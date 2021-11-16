@@ -222,7 +222,7 @@ function silentinstall
   exit
 }
 
-if ($args[0] -eq "-silentinstall0")
+if (($args[0] -eq "-silentinstall0") -or ($args[0] -eq "-s0"))
 {
   silentinstall0
 }
