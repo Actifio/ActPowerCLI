@@ -108,8 +108,20 @@ You can run a silent install by adding -silentinstall or -silentinstall0
 * **-silentuninstall** or **-u** will silently uninstall the module.   You may need to exit the session to remove the module from memory
 
 By slot we mean the output of **$env:PSModulePath** where 0 is the first module in the list, 1 is the second module and so on.
-Note that if the module is already installed, then if you specify **-silentinstall** or **-s** it will reinstall in the same folder.
-
+If the module is already installed, then if you specify **-silentinstall** or **-s** it will reinstall in the same folder.
+If the module is not installed, then by default it will be installed into path 1
+```
+PS C:\Windows\system32>  $env:PSModulePath.split(';')
+C:\Users\avw\Documents\WindowsPowerShell\Modules <-- this is 0
+C:\Program Files (x86)\WindowsPowerShell\Modules <-- this is 1
+PS C:\Windows\system32>
+```
+Or for Unix:
+```
+PS /Users/avw> $env:PSModulePath.Split(':')
+/Users/avw/.local/share/powershell/Modules    <-- this is 0
+/usr/local/share/powershell/Modules           <-- this is 1
+```
 Usage example:
 ```
 PS /Users/avw> ./ActPowerCLI/Install-ActPowerCLI.ps1 -s0
