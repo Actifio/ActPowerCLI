@@ -11,16 +11,8 @@ A Powershell module to manage Actifio Appliances
 
 ## What versions of PowerShell and Operating Systems will this module work with?
 
-* It will work with Windows PowerShell Version 5 (no requirement for .NET)
-* It should work with PowerShell Version 6 on Linux, Mac OS and Windows Operating Systems (no requirement for .NET).  No testing is being done on PS6.
-* It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems (no requirement for .NET) 
-
-In this repository are two separate versions of ActPowerCLI, but you don't need to work out which one to use.
-It will be handled automatically by the included installer.
-
-The installer will install this version:
-
-* ActPowerCLI Version 10.0.1.x  is for Windows PowerShell 5 and PowerShell 6/7 and can be installed from the GitHub zip file or PowerShell Gallery
+* It will work with Windows PowerShell Version 5 
+* It will work with PowerShell Version 7 on Linux, Mac OS and Windows Operating Systems 
 
 #### What about Windows PowerShell 3 and 4?
 
