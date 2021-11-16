@@ -120,6 +120,15 @@ You can run a silent install by adding -silentinstall or -silentinstall0
 By slot we mean the output of **$env:PSModulePath** where 0 is the first module in the list, 1 is the second module and so on.
 Note that if the module is already installed, then if you specify **-silentinstall** or **-s** it will reinstall in the same folder.
 
+Usage example:
+```
+PS /Users/avw> ./ActPowerCLI/Install-ActPowerCLI.ps1 -s0
+Detected PowerShell version:    7
+Downloaded ActPowerCLI version: 10.0.1.36
+Installed ActPowerCLI version:  10.0.1.36 in  /Users/avw/.local/share/powershell/Modules/ActPowerCLI/
+PS /Users/avw>
+```
+
 
 #### GITHUB Install fails with Access to the path 'ActPowerCLI.dll' is denied.
 
