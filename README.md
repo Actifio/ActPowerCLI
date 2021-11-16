@@ -108,7 +108,7 @@ Common upgrade issues are solved by:
 * Unblocking the downloaded zip file.
 * Running the PowerShell session as Administrator, depending on where current installs are and where you want to install to.
 
-### Silent install
+#### Silent install using downloaded github installer
 
 You can run a silent install by adding -silentinstall or -silentinstall0
 
