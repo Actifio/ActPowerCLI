@@ -515,7 +515,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 
 
     # make sure we have something to connect to
-    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -684,7 +684,7 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 # we dont want to precreate all the SARG functions, but reportlist is a good one to help the client understand if SARG commands dont work.
 function reportlist ()
 {
-    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act.  Report commands are only loaded after you login to an Appliance."  
         return;
@@ -708,7 +708,7 @@ function New-SARGFuncs()
 
 
     # make sure we have something to connect to
-    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -844,7 +844,7 @@ Function udsinfo([string]$subcommand, [switch][alias("h")]$help)
     #>
 
     # make sure we have something to connect to
-    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -1000,7 +1000,7 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
     # this function will imitate udstask so that users don't need to remember each
     # individual function.
     # make sure we have something to connect to
-    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -1128,7 +1128,7 @@ Function usvcinfo([string]$subcommand)
    
     # no help is available for this command
     # make sure we have something to connect to
-    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;
@@ -1188,7 +1188,7 @@ Function usvctask([string]$subcommand)
 
     # this command will allow users to run specific usvctask commands.
     # make sure we have something to connect to
-    if ( (!($env:ACTSESSIONID)) -or (!($env:ACTSESSIONID)) ) 
+    if ( (!($env:ACTSESSIONID)) -or (!($env:acthost)) ) 
     { 
         Get-ActErrorMessage -messagetoprint "Not logged in or session expired. Please login using Connect-Act"  
         return;

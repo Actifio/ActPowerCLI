@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.35'
+ModuleVersion = '10.0.1.36'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -27,7 +27,7 @@ Author = 'Anthony Vandewerdt'
 CompanyName = 'Actifio'
 
 # Copyright statement for this module
-Copyright = '(c) 2020 Actifio, Inc. All rights reserved'
+Copyright = '(c) 2021 Actifio, Inc. All rights reserved'
 
 ##################################################################################################################
 # Description of the functionality provided by this module
@@ -111,6 +111,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.36] 2021-11-16
+        The check for env:acthost was swapped with env:actsessionid at some point, resulting in a double check for env:actsessionid 
+
         ## [10.0.1.35] 2021-11-08
         Finally removed all PS4 content.  The DLL is now finally gone.  This module will only support PS5 going forward
         Added configurable timeout using -timeout with connect-act
