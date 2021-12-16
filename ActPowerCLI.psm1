@@ -1340,13 +1340,16 @@ Function Get-ActAPIData
             {
                 $resp = Invoke-RestMethod -Method Get -Uri "$args" 
             }
-            Catch { $_.Exception}
+            Catch 
             {
-                $result = $_.Exception.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($result)
-                $reader.BaseStream.Position = 0
-                $reader.DiscardBufferedData()
-                $responseBody = $reader.ReadToEnd();
+                if ({$_.Exception})
+                {
+                    $result = $_.Exception.Response.GetResponseStream()
+                    $reader = New-Object System.IO.StreamReader($result)
+                    $reader.BaseStream.Position = 0
+                    $reader.DiscardBufferedData()
+                    $responseBody = $reader.ReadToEnd();
+                }
             }
             if ($responseBody) 
             {
@@ -1416,13 +1419,16 @@ Function Get-ActAPIDataPost
             {
                 $resp = Invoke-RestMethod -Method Post -Uri "$args" 
             }
-            Catch { $_.Exception}
+            Catch 
             {
-                $result = $_.Exception.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($result)
-                $reader.BaseStream.Position = 0
-                $reader.DiscardBufferedData()
-                $responseBody = $reader.ReadToEnd();
+                if ({$_.Exception})
+                {
+                    $result = $_.Exception.Response.GetResponseStream()
+                    $reader = New-Object System.IO.StreamReader($result)
+                    $reader.BaseStream.Position = 0
+                    $reader.DiscardBufferedData()
+                    $responseBody = $reader.ReadToEnd();
+                }
             }
             if ($responseBody) 
             {
