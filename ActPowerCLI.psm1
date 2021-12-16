@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.36'
+# ModuleVersion = '10.0.1.37'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -1340,7 +1340,7 @@ Function Get-ActAPIData
             {
                 $resp = Invoke-RestMethod -Method Get -Uri "$args" 
             }
-            Catch
+            Catch { $_.Exception}
             {
                 $result = $_.Exception.Response.GetResponseStream()
                 $reader = New-Object System.IO.StreamReader($result)
@@ -1416,7 +1416,7 @@ Function Get-ActAPIDataPost
             {
                 $resp = Invoke-RestMethod -Method Post -Uri "$args" 
             }
-            Catch
+            Catch { $_.Exception}
             {
                 $result = $_.Exception.Response.GetResponseStream()
                 $reader = New-Object System.IO.StreamReader($result)

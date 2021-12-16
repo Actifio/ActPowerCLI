@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.36'
+ModuleVersion = '10.0.1.37'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -111,6 +111,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.37] 2021-12-16
+        Handle case where response is null and externally timed out long running operation
+
         ## [10.0.1.36] 2021-11-16
         The check for env:acthost was swapped with env:actsessionid at some point, resulting in a double check for env:actsessionid 
 
