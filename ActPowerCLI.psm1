@@ -1342,11 +1342,19 @@ Function Get-ActAPIData
             }
             Catch 
             {
-                $result = $_.Exception.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($result)
-                $reader.BaseStream.Position = 0
-                $reader.DiscardBufferedData()
-                $responseBody = $reader.ReadToEnd();
+                if ($_.Exception.Response)
+                {
+                    $result = $_.Exception.Response.GetResponseStream()
+                    $reader = New-Object System.IO.StreamReader($result)
+                    $reader.BaseStream.Position = 0
+                    $reader.DiscardBufferedData()
+                    $responseBody = $reader.ReadToEnd();
+                }
+                else 
+                {
+                    Get-ActErrorMessage -messagetoprint  "No response was received from $acthost"
+                    return
+                }
             }
             if ($responseBody) 
             {
@@ -1418,11 +1426,19 @@ Function Get-ActAPIDataPost
             }
             Catch 
             {
-                $result = $_.Exception.Response.GetResponseStream()
-                $reader = New-Object System.IO.StreamReader($result)
-                $reader.BaseStream.Position = 0
-                $reader.DiscardBufferedData()
-                $responseBody = $reader.ReadToEnd();
+                if ($_.Exception.Response)
+                {
+                    $result = $_.Exception.Response.GetResponseStream()
+                    $reader = New-Object System.IO.StreamReader($result)
+                    $reader.BaseStream.Position = 0
+                    $reader.DiscardBufferedData()
+                    $responseBody = $reader.ReadToEnd();
+                }
+                else 
+                {
+                    Get-ActErrorMessage -messagetoprint  "No response was received from $acthost"
+                    return
+                }
             }
             if ($responseBody) 
             {
