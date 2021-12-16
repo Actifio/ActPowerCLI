@@ -1352,7 +1352,7 @@ Function Get-ActAPIData
                 }
                 else 
                 {
-                    Get-ActErrorMessage -messagetoprint  "No response was received from $env:acthost  Timeout is set to $env:acttimeout"
+                    Get-ActErrorMessage -messagetoprint  "No response was received from $env:acthost  Timeout is set to $env:acttimeout seconds"
                     return
                 }
             }
@@ -1436,7 +1436,7 @@ Function Get-ActAPIDataPost
                 }
                 else 
                 {
-                    Get-ActErrorMessage -messagetoprint  "No response was received from $env:acthost  Timeout is set to $env:acttimeout"
+                    Get-ActErrorMessage -messagetoprint  "No response was received from $env:acthost  Timeout is set to $env:acttimeout seconds"
                     return
                 }
             }

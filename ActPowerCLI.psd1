@@ -112,7 +112,7 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = '
         ## [10.0.1.37] 2021-12-16
-        Handle case where response is null and externally timed out long running operation
+        Handle case where response is null and timed out long running operation.  Clean error message will appears if empty response is received.  Timeout now applies to every single command
 
         ## [10.0.1.36] 2021-11-16
         The check for env:acthost was swapped with env:actsessionid at some point, resulting in a double check for env:actsessionid 
