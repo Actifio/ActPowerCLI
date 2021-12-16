@@ -1342,7 +1342,7 @@ Function Get-ActAPIData
             }
             Catch 
             {
-                if ({$_.Exception})
+                if ($_.Exception.Response)
                 {
                     $result = $_.Exception.Response.GetResponseStream()
                     $reader = New-Object System.IO.StreamReader($result)
@@ -1421,7 +1421,7 @@ Function Get-ActAPIDataPost
             }
             Catch 
             {
-                if ({$_.Exception})
+                if ($_.Exception.Response)
                 {
                     $result = $_.Exception.Response.GetResponseStream()
                     $reader = New-Object System.IO.StreamReader($result)
