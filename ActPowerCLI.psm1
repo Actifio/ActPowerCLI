@@ -112,12 +112,12 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
 
     if ($timeout)
     {
-        $env:timeout = $timeout
+        $env:acttimeout = $timeout
     }
 
-    if ((!($timeout))  -and ($env:timeout -eq $null))
+    if ((!($timeout))  -and ($env:acttimeout -eq $null))
     {
-        $env:timeout = 15
+        $env:acttimeout = 15
     }
 
 
@@ -131,7 +131,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     {
         Try 
         {
-            $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/version -TimeoutSec $env:timeout
+            $resp = Invoke-RestMethod -Uri https://$acthost/actifio/api/version -TimeoutSec $env:acttimeout
         } 
         Catch 
         { 
@@ -139,7 +139,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
         }
         if (($RestError -like "*was canceled*") -or ($RestError -like "*The operation has timed out*"))
         {
-            Get-ActErrorMessage -messagetoprint  "No response was received from $acthost after $env:timeout seconds"
+            Get-ActErrorMessage -messagetoprint  "No response was received from $acthost after $env:acttimeout seconds"
             return;
         }
         elseif (($RestError -like "Connection refused") -or ($RestError -like "Unable to connect to the remote server"))
@@ -257,11 +257,11 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     {
         if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:timeout
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:acttimeout
         }
         else 
         {
-            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:timeout
+            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:acttimeout
         }
     }
     Catch
@@ -270,7 +270,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     }
     if (($RestError -like "*was canceled*") -or ($RestError -like "*The operation has timed out*"))
     {
-        Get-ActErrorMessage -messagetoprint "No response was received from $acthost after $env:timeout seconds"
+        Get-ActErrorMessage -messagetoprint "No response was received from $acthost after $env:acttimeout seconds"
         return;
     }
     elseif (($RestError -like "Connection refused") -or ($RestError -like "Unable to connect to the remote server"))
@@ -424,11 +424,11 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     {
         if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
-            $null = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec $env:timeout
+            $null = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url  -TimeoutSec $env:acttimeout
         }
         else 
         {
-            $null = Invoke-RestMethod -Method POST -Uri $Url  -TimeoutSec $env:timeout
+            $null = Invoke-RestMethod -Method POST -Uri $Url  -TimeoutSec $env:acttimeout
         }
     }
     Catch
@@ -460,7 +460,7 @@ function Disconnect-Act([switch][alias("q")]$quiet)
     $env:IGNOREACTCERTS = $null
     $env:UDSINFOCMDS = $null
     $env:UDSTASKCMDS = $null
-    $env:timeout = $null
+    $env:acttimeout = $null
     $global:ACTSORTORDER = $null
     $global:ACTPRIVILEGES = $null
     # Set the security protocol back to the old defaults
@@ -718,11 +718,11 @@ function New-SARGFuncs()
     {  
         if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {  
-            $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url
+            $reportlistout = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri $Url -TimeoutSec $env:acttimeout
         }
         else
         {
-            $reportlistout = Invoke-RestMethod -Method Get -Uri $Url
+            $reportlistout = Invoke-RestMethod -Method Get -Uri $Url -TimeoutSec $env:acttimeout
         }
     }
     Catch
@@ -1314,11 +1314,11 @@ Function Get-ActAPIData
             {
                 if ($env:IGNOREACTCERTS -eq "y") 
                 {  
-                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" 
+                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Get -Uri "$args" -TimeoutSec $env:acttimeout
                 }
                 else 
                 {
-                    $resp = Invoke-RestMethod -Method Get -Uri "$args" 
+                    $resp = Invoke-RestMethod -Method Get -Uri "$args" -TimeoutSec $env:acttimeout
                 }
             }
             Catch
@@ -1338,7 +1338,7 @@ Function Get-ActAPIData
         {
             Try    
             {
-                $resp = Invoke-RestMethod -Method Get -Uri "$args" 
+                $resp = Invoke-RestMethod -Method Get -Uri "$args" -TimeoutSec $env:acttimeout
             }
             Catch 
             {
@@ -1379,11 +1379,11 @@ Function Get-ActAPIDataPost
             {
                 if ($env:IGNOREACTCERTS -eq "y")  
                 {
-                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" 
+                    $resp = Invoke-RestMethod -SkipCertificateCheck -Method Post -Uri "$args" -TimeoutSec $env:acttimeout
                 }
                 else 
                 {
-                    $resp = Invoke-RestMethod -Method Post -Uri "$args" 
+                    $resp = Invoke-RestMethod -Method Post -Uri "$args" -TimeoutSec $env:acttimeout
                 }
             }
             Catch
@@ -1417,7 +1417,7 @@ Function Get-ActAPIDataPost
         {
             Try    
             {
-                $resp = Invoke-RestMethod -Method Post -Uri "$args" 
+                $resp = Invoke-RestMethod -Method Post -Uri "$args" -TimeoutSec $env:acttimeout
             }
             Catch 
             {
