@@ -406,7 +406,7 @@ Get-LastSnap -?
 Get-LastSnap -app 18405 -jobclass snapshot
 reportlist
 reportpools 
-eportimages -a 0 | select jobclass, hostname, appname | format-table
+reportimages -a 0 | select jobclass, hostname, appname | format-table
 reportsnaps | export-csv -path C:\Users\av\Documents\reportsnaps.csv
 reportrpo | select apptype, hostname, appname, snapshotdate
 reportrpo | where {$_.Apptype -eq "VMBackup"} | select appname, snapshotdate
