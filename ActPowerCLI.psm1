@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.37'
+# ModuleVersion = '10.0.1.38'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -498,18 +498,11 @@ function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h
 {
     <#
     .SYNOPSIS
-    Executes SARG commands via a rest API hosted on a VDP Appliance.
+    Executes SARG commands via a rest API hosted on a VDP Appliance.  Do not run it manually.
 
-    .EXAMPLE
-    Get-SARGReport reportlist
-    List out the possible reports available.
-
-    .EXAMPLE
-    Get-SARGReport reportimages -a 123456
-    Runs reportimages report for the appid 123456
 
     .DESCRIPTION
-    The majority of report commands that are available in a VDP Appliance are available via ActPowerCLI module.
+    Internal function used to fetch data
 
     #>
 
