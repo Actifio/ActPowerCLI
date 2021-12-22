@@ -493,13 +493,12 @@ function Get-SARGSortOrder([string]$parmletter,[string]$reportname)
     }
 }
 
-# Get-SARGReport function
-function Get-SARGReport([string]$reportname,[string]$sargparms,[switch][alias("h")]$help)
+# Get-InternalSARGReport function
+function Get-InternalSARGReport([string]$reportname,[string]$sargparms,[switch][alias("h")]$help)
 {
     <#
     .SYNOPSIS
     Executes SARG commands via a rest API hosted on a VDP Appliance.  Do not run it manually.
-
 
     .DESCRIPTION
     Internal function used to fetch data
@@ -684,10 +683,10 @@ function reportlist ()
     }
     if (!($args))
     {
-        Get-SARGReport reportlist "-p" | select-object ReportName,ReportFunction,FriendlyName,RequiredRoleRights
+        Get-InternalSARGReport reportlist "-p" | select-object ReportName,ReportFunction,FriendlyName,RequiredRoleRights
     } 
     else {
-        Get-SARGReport reportlist $args
+        Get-InternalSARGReport reportlist $args
     }
 }
 
@@ -733,7 +732,7 @@ function New-SARGFuncs()
 	# get the list of sarg commands and set an item for each
 	foreach ($cmd in $sargcmdlist) 
 	{
-		set-item -path function:global:$cmd -value { Get-SARGReport $cmd $args}.getNewClosure(); 
+		set-item -path function:global:$cmd -value { Get-InternalSARGReport $cmd $args}.getNewClosure(); 
     }
 
     if ($env:ACTSORTOVERRIDE -eq "n")
