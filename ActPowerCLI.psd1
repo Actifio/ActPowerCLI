@@ -72,7 +72,7 @@ PowerShellVersion = '5.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Set-ActAPILimit','Get-ActAPILimit','Get-Privileges','Get-ActAppID','Get-LastSnap','reportlist','Get-ActifioLogs')
+FunctionsToExport = @('Connect-Act','Disconnect-Act','udsinfo','udstask','usvcinfo','usvctask','Save-ActPassword','Set-ActAPILimit','Get-ActAPILimit','Get-SARGReport','Get-Privileges','Get-ActAppID','Get-LastSnap','reportlist','Get-ActifioLogs')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
