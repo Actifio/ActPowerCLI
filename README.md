@@ -315,10 +315,9 @@ To list the above in a table format
 ```
 udsinfo lsbackup -filtervalue "jobclass=snapshot&appid=18405" | format-table
 ```
-To get a list of available SARG reports, run either:
+To get a list of available SARG reports, run :
 ```
 reportlist 
-get-sargreport reportlist
 ```
 To list all available storage pools on the Actifio appliance, run the reportpools command:
 ```
@@ -326,7 +325,7 @@ reportpools
 ```
 Run the SARG reportimages command:
 ```
-get-sargreport reportimages -a 0 | select jobclass, hostname, appname | format-table
+reportimages -a 0 | select jobclass, hostname, appname | format-table
 ```
 To export to CSV we use the PowerShell export-csv option and then specify the path.   In this example you can see the path and filename that was used.
 ```
@@ -405,9 +404,9 @@ udsinfo lsbackup -filtervalue "jobclass=snapshot&appid=18405"
 udsinfo lsbackup -filtervalue "jobclass=snapshot&appid=18405" | format-table
 Get-LastSnap -?
 Get-LastSnap -app 18405 -jobclass snapshot
-get-sargreport reportlist
+reportlist
 reportpools 
-get-sargreport reportimages -a 0 | select jobclass, hostname, appname | format-table
+eportimages -a 0 | select jobclass, hostname, appname | format-table
 reportsnaps | export-csv -path C:\Users\av\Documents\reportsnaps.csv
 reportrpo | select apptype, hostname, appname, snapshotdate
 reportrpo | where {$_.Apptype -eq "VMBackup"} | select appname, snapshotdate
