@@ -1,5 +1,5 @@
 # # Version number of this module.
-# ModuleVersion = '10.0.1.38'
+# ModuleVersion = '10.0.1.39'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -257,11 +257,11 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     {
         if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:acttimeout
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -TimeoutSec $env:acttimeout
         }
         else 
         {
-            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -ContentType $Type -TimeoutSec $env:acttimeout
+            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -TimeoutSec $env:acttimeout
         }
     }
     Catch

@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.38'
+ModuleVersion = '10.0.1.39'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -111,6 +111,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.39] 2022-02-01
+        Remove unneeded contenttype parms specified during login
+
         ## [10.0.1.38] 2021-12-22
         Get-SARGReport should not be run by users, they can just run the SARG report directly. if commands use parms, they will be lost which can cause incorrect results being shown.   Changing to rename it Get-InternalSARGReport
         If you are using it in scripts, you will need to update those scripts before updating to this version of ActPowerCLI. Just remove the Get-SARGReport it is not needed
