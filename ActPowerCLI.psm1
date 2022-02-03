@@ -249,19 +249,22 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
 
     # password needs to be sent as base64 per API Guide
     $UnsecurePassword = [System.Net.NetworkCredential]::new("", $passwordenc).Password
+    # URL encode the password to handle password with # in it
+    $encodedpassword = [System.Web.HttpUtility]::UrlEncode($UnsecurePassword) 
     # $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
-    $Header = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($vdpuser+":"+$UnsecurePassword))}
-    $Url = "https://$acthost/actifio/api/login?name=$vdpuser&password=$UnsecurePassword&vendorkey=$vendorkey"
+    # $Header = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($vdpuser+":"+$UnsecurePassword))}
+    $Url = "https://$acthost/actifio/api/login?name=$vdpuser&password=$encodedpassword&vendorkey=$vendorkey"
+    
     $RestError = $null
     Try
     {
         if ( ($env:IGNOREACTCERTS -eq "y") -and ($((get-host).Version.Major) -gt 5) )
         {
-            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -Headers $Header -TimeoutSec $env:acttimeout
+            $resp = Invoke-RestMethod -SkipCertificateCheck -Method POST -Uri $Url -TimeoutSec $env:acttimeout
         }
         else 
         {
-            $resp = Invoke-RestMethod -Method POST -Uri $Url -Headers $Header -TimeoutSec $env:acttimeout
+            $resp = Invoke-RestMethod -Method POST -Uri $Url -TimeoutSec $env:acttimeout
         }
     }
     Catch
