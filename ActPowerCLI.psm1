@@ -250,7 +250,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
     # password needs to be sent as base64 per API Guide
     $UnsecurePassword = [System.Net.NetworkCredential]::new("", $passwordenc).Password
     # URL encode the password to handle password with # in it
-    $encodedpassword = [System.Web.HttpUtility]::UrlEncode($UnsecurePassword) 
+    $encodedpassword = [System.Net.WebUtility]::UrlEncode($UnsecurePassword)   
     # $UnsecurePassword = ConvertFrom-SecureString -SecureString $passwordenc -AsPlainText
     # $Header = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($vdpuser+":"+$UnsecurePassword))}
     $Url = "https://$acthost/actifio/api/login?name=$vdpuser&password=$encodedpassword&vendorkey=$vendorkey"
