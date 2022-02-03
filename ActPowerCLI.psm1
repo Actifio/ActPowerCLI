@@ -76,7 +76,7 @@ function  Connect-Act([string]$acthost, [string]$actuser, [string]$password, [st
 
     .PARAMETER actuser
     Required. Username to connect to VDP as. Same username that is used in the 
-    Actifio Desktop login screen.
+    Actifio Appliance  Setup panel.
 
     .PARAMETER password
     Optional. If not provided, a prompt will be presented. If provided, it can be provided
