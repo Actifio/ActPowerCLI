@@ -12,7 +12,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.38'
+ModuleVersion = '10.0.1.39'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -111,9 +111,13 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.39] 2022-02-01
+        URL encode password to ensure that passwords with special characters dont cause an issue, for instance a password with a # gets invalid vendorkey and/or 400 errors
+        Remove unneeded contenttype and header parms specified during login
+
         ## [10.0.1.38] 2021-12-22
         Get-SARGReport should not be run by users, they can just run the SARG report directly. if commands use parms, they will be lost which can cause incorrect results being shown.   Changing to rename it Get-InternalSARGReport
-        If you are using it in scripts, you will need to update those scripts before updating to this version of ActPowerCLI. Just remove the Get-SARGReport it is not needed
+        If you are using it in scripts, you will need to update those scripts before updating to this version of ActPowerCLI. Just remove the Get-SARGReport as it is not needed
 
         ## [10.0.1.37] 2021-12-16
         Handle case where response is null and timed out long running operation.  Clean error message will appears if empty response is received.  Timeout now applies to every single command
