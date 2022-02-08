@@ -227,7 +227,7 @@ Help not supported for API.     10008
 ```
 
 
-###  Save your password
+###  Save your password locally
 
 Create an encrypted password file using the ActPowerCLI Save-ActPassword function:
 ```
@@ -236,6 +236,21 @@ Save-ActPassword -filename "C:\temp\password.key"
 
 The Save-ActPassword function creates an encrypted password file on Windows, but on Linux and Mac it only creates an encoded password file.  
 Note that you can also use this file with the Connect-AGM command from AGMPowerCLI.
+
+### Save your password remotely
+
+You can save your password in a secret manager and call it during login.   For example you could do this if you are running your PowerShell in a Google Cloud Compute Instance:
+
+1. Enable Google Secret Manager API:  https://console.cloud.google.com/apis/library/secretmanager.googleapis.com
+1. Create a secret storing your AGM password:  https://console.cloud.google.com/security/secret-manager
+1. Create a service account with the **Secret Manager Secret Accessor** role:  https://console.cloud.google.com/iam-admin/serviceaccounts
+1. Create or select an instance which you will use to run PowerShell and set the service account for this instance (which will need to be powered off).
+1. On this instance install the Google PowerShell module:  **Install-Module GoogleCloud**
+1. You can now fetch the AGM password using a command like this:  
+```
+gcloud secrets versions access latest --secret=skyadminpassword
+```
+
 
 ##### Sharing Windows key files
 
@@ -255,6 +270,10 @@ Connect-Act 10.61.5.114 admin -ignorecerts
 Or login to the Actifio cluster using the password file created in the previous step:
 ```
 Connect-Act 10.61.5.114 -actuser admin -passwordfile "c:\temp\password.key" -ignorecerts
+```
+If you are using Google secret manager, then if your Sky password is stored in a secret called **skyadminpassword** then this syntax will work:
+```
+Connect-Act 10.61.5.114 admin $(gcloud secrets versions access latest --secret=skyadminpassword) -i
 ```
 
 #### Default timeout
