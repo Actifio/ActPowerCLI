@@ -242,7 +242,7 @@ Note that you can also use this file with the Connect-AGM command from AGMPowerC
 You can save your password in a secret manager and call it during login.   For example you could do this if you are running your PowerShell in a Google Cloud Compute Instance:
 
 1. Enable Google Secret Manager API:  https://console.cloud.google.com/apis/library/secretmanager.googleapis.com
-1. Create a secret storing your AGM password:  https://console.cloud.google.com/security/secret-manager
+1. Create a secret storing your Sky password:  https://console.cloud.google.com/security/secret-manager
 1. Create a service account with the **Secret Manager Secret Accessor** role:  https://console.cloud.google.com/iam-admin/serviceaccounts
 1. Create or select an instance which you will use to run PowerShell and set the service account for this instance (which will need to be powered off).
 1. On this instance install the Google PowerShell module:  **Install-Module GoogleCloud**
