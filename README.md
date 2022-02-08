@@ -246,7 +246,7 @@ You can save your password in a secret manager and call it during login.   For e
 1. Create a service account with the **Secret Manager Secret Accessor** role:  https://console.cloud.google.com/iam-admin/serviceaccounts
 1. Create or select an instance which you will use to run PowerShell and set the service account for this instance (which will need to be powered off).
 1. On this instance install the Google PowerShell module:  **Install-Module GoogleCloud**
-1. You can now fetch the AGM password using a command like this:  
+1. You can now fetch the Sky password using a command like this:  
 ```
 gcloud secrets versions access latest --secret=skyadminpassword
 ```
