@@ -1161,7 +1161,7 @@ foreach ($app in $appstounmanage)
 
 ## Slot Management
 
-Sometimes it may be necessary to modify the number of slots allocated to certain job types.   Slots are used as a pacing mechanism.   For each job type there is resserved number of slots which guarantees at least that many of that jobtype can start.  Then there is a maximum slot count for each job type.    To see all slot settings use this command:
+Sometimes it may be necessary to modify the number of slots allocated to certain job types.   Slots are used as a pacing mechanism.   For each job type there is reserved number of slots which guarantees at least that many of that jobtype can start.  Then there is a maximum slot count for each job type.    To see all slot settings use this command:
 ```
 udsinfo getparameter |select *slot*
 ```
