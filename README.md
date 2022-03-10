@@ -1225,7 +1225,7 @@ maxvaultslots
 ```
 
 ### Mount job slot command
-Mount jobs are considered on-demand jobs.  So in this example we coukd have up to 3 mount jobs running because we have 3 reserved slots (provided other on-demand jobs are not using those slots).  However the maximum for on-demand jobs is 6, which means that if there are any unreserved slots not in use,  then they can be used to run those three additional mount jobs.
+Mount jobs are considered on-demand jobs.  So in this example we could have up to 3 mount jobs running because we have 3 reserved slots (provided other on-demand jobs are not using those slots).  However the maximum for on-demand jobs is 6, which means that if there are any unreserved slots not in use,  then they can be used to run those three additional mount jobs.
 
 ```
 PS /home/avw_google_com>  udsinfo getparameter -param reservedondemandslots
