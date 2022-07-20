@@ -6,7 +6,8 @@ This is a Powershell module to manage Actifio Sky Appliances.  It can be used wi
 **[Usage](#usage)**<br>
 **[FAQ](#faq)**<br>
 **[User Stories](#user-stories)**<br>
-
+**[Contributing](#contributing)**<br>
+**[Disclaimer](#disclaimer)**<br>
 
 ## What versions of PowerShell and Operating Systems will this module work with?
 
