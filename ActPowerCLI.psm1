@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # # Version number of this module.
-# ModuleVersion = '10.0.1.39'
+# ModuleVersion = '10.0.1.40'
 function psfivecerthandler
 {
     if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
@@ -1059,16 +1059,19 @@ Function udstask ([string]$subcommand, [switch][alias("h")]$help)
 
 
 # this function will save a VDP password so that ActPowerCLI can be used in scripts.
-Function Save-ActPassword([string]$filename)
+Function Save-ActPassword([string]$filename,[string]$password)
 {
     <#
     .SYNOPSIS
-    Save credentials so that scripting is easy and interactive login is no longer 
-    needed.
+    Save credentials so that scripting is easy and interactive login is no longer needed.
 
     .EXAMPLE
     Save-ActPassword -filename ./5b-admin-pass
-    Save the password for use later.
+    Prompt the user for the password and write to the specified file name
+
+   .EXAMPLE
+    Save-ActPassword -filename ./5b-admin-pass -password "passw0rd"
+    Save the specified plaintext password to the specified file name
 
     .DESCRIPTION
     Store the credentials in a file which can be used to login to VDP Appliance.
@@ -1096,9 +1099,17 @@ Function Save-ActPassword([string]$filename)
 	}
 
 	# prompt for password 
-	$password = Read-Host -AsSecureString "Password"
+    if (!($password))
+    {
+	    $password = Read-Host -AsSecureString "Password"
+	    $password | ConvertFrom-SecureString | Out-File $filename
+    }
+    else 
+    {
+        $passwordenc = $password | ConvertTo-SecureString -AsPlainText -Force
+        $passwordenc | ConvertFrom-SecureString | Out-File $filename
+    }
 
-	$password | ConvertFrom-SecureString | Out-File $filename
 
 	if ( $? )
 	{

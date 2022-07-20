@@ -26,7 +26,7 @@
 RootModule = 'ActPowerCLI.psm1'
 
 # Version number of this module.
-ModuleVersion = '10.0.1.39'
+ModuleVersion = '10.0.1.40'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -41,7 +41,7 @@ Author = 'Anthony Vandewerdt'
 CompanyName = 'Actifio'
 
 # Copyright statement for this module
-Copyright = '(c) 2021 Actifio, Inc. All rights reserved'
+Copyright = '(c) 2022 Actifio, Inc. All rights reserved'
 
 ##################################################################################################################
 # Description of the functionality provided by this module
@@ -125,6 +125,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
+        ## [10.0.1.40] 2022-07-20
+        Allow user to specify plaintext password when running Save-ActPassword
+
         ## [10.0.1.39] 2022-02-01
         URL encode password to ensure that passwords with special characters dont cause an issue, for instance a password with a # gets invalid vendorkey and/or 400 errors
         Remove unneeded contenttype and header parms specified during login
