@@ -1,5 +1,5 @@
 # :no_entry: Deprecated
-:no_entry: This is a deprecated Powershell module to manage Actifio Sky Appliances deployed with Actifio GO.
+This is a deprecated Powershell module to manage Actifio Sky Appliances deployed with Actifio GO.
 
 > **Note**:  ActPowerCLI cannot be used with Google Cloud Backup and DR.   If you using ActPowerCLI we strongly urge you to start using AGMPowerCLI which you can find [here](https://github.com/Actifio/AGMPowerCLI#readme).    AGMPowerCLI will work with both Actifio GO and Google Cloud Backup and DR.
 
