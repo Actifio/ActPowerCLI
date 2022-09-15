@@ -11,6 +11,16 @@ This is a superseded Powershell module to manage Actifio Sky Appliances deployed
 **[Contributing](#contributing)**<br>
 **[Disclaimer](#disclaimer)**<br>
 
+## What Actifio/Google products can I use ActPowerCLI with?
+ActPowerCLI connects to and interacts with the following products/devices:
+
+| Product | Device | Can connect to:
+| ---- | ---- | --------
+| Actifio | Sky  | yes         
+| Actifio | AGM | no        
+| Google Cloud Backup and DR | Management Console |  no
+| Google Cloud Backup and DR | Backup/recovery appliance |  no
+
 ## What versions of PowerShell and Operating Systems will this module work with?
 
 * It will work with Windows PowerShell Version 5 
