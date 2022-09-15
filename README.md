@@ -1,4 +1,4 @@
-# Superseded
+# :exclamation: Superseded
 This is a superseded Powershell module to manage Actifio Sky Appliances deployed with Actifio GO.
 
 > **Note**:  ActPowerCLI cannot be used with Google Cloud Backup and DR.   If you are using ActPowerCLI we strongly urge you to start using AGMPowerCLI which you can find [here](https://github.com/Actifio/AGMPowerCLI#readme).    AGMPowerCLI will work with both Actifio GO and Google Cloud Backup and DR.
@@ -24,9 +24,9 @@ Windows PowerShell Version 3 or 4 are no longer supported.  PS 3 and 4 relied on
 
 You have two choices:   PowerShell Gallery or GitHub download.
 
-### Windows PowerShell 5 and PowerShell 6 and 7 - Install from the PowerShell Gallery 
+### Windows PowerShell 5 and PowerShell 7 - Install from the PowerShell Gallery 
 
-Install from PowerShell Gallery.   If Running PowerShell 5, set to Tls12 to avoid NuGet errors.
+Install from PowerShell Gallery.   If running PowerShell 5, set to Tls12 to avoid NuGet errors.
 
 ```
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
